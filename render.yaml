@@ -1,0 +1,35 @@
+databases:
+  - name: samaki-db
+    databaseName: samaki
+    user: samaki_user
+    plan: free
+
+services:
+  - type: web
+    name: samakiafrica
+    runtime: docker
+    plan: free
+    branch: main
+    envVars:
+      - key: PORT
+        value: 8086
+      - key: DB_HOST
+        fromDatabase:
+          name: samaki-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: samaki-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: samaki-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: samaki-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: samaki-db
+          property: password
