@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Catches – SamakiAfrica Fisher Hub</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="container nav-container">
+      <a th:href="@{/}" class="brand-logo">
+        <div class="brand-icon-wrap">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6.5 12c.94-3.46 4.94-6 8.5-6 3.56 0 6.06 2.54 7 6-.94 3.46-3.44 6-7 6s-7.56-2.54-8.5-6Z"/>
+            <path d="M18 12v.5"/>
+            <path d="M16 17.93a9.77 9.77 0 0 1 0-11.86"/>
+            <path d="M7 10.67C7 8 5.58 5.97 2.73 4 3.73 7 4 9 4 12s-.27 5-1.27 8C5.58 18.03 7 16 7 13.33v-2.66Z"/>
+          </svg>
+        </div>
+        <span>Samaki<span class="text-gradient-orange">Africa</span></span>
+        <span class="brand-badge">Fisher Fleet</span>
+      </a>
+
+      <ul class="nav-links">
+        <li><a th:href="@{/listings}" class="nav-link">Public Marketplace</a></li>
+        <li><a th:href="@{/dashboard}" class="nav-link">Dashboard</a></li>
+        <li><a th:href="@{/my-listings}" class="nav-link active">My Catches</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <div class="user-pill">
+          <span class="user-avatar" th:text="${#strings.substring(currentUser.fullName, 0, 1)}">U</span>
+          <span th:text="${currentUser.fullName}">Fisher</span>
+        </div>
+        <a th:href="@{/listings/new}" class="btn btn-orange btn-sm">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          Post Catch
+        </a>
+        <form th:action="@{/logout}" method="post" style="display:inline;">
+          <button type="submit" class="btn btn-glass btn-sm">Logout</button>
+        </form>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <main class="container" style="padding: 2.5rem 1.5rem 5rem;">
+
+    <!-- Header & Action -->
+    <div class="dashboard-header">
+      <div>
+        <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.35rem;">
+          <a th:href="@{/dashboard}" style="color: var(--text-secondary);">Dashboard</a> / <span style="color: var(--text-cyan);">My Catches</span>
+        </div>
+        <h1>Fleet Catch Management</h1>
+        <p>Update live catch statuses, modify pricing, edit batch weights, or remove completed sales.</p>
+      </div>
+      <div>
+        <a th:href="@{/listings/new}" class="btn btn-orange btn-lg">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          Post a New Catch
+        </a>
+      </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="dashboard-stats-grid">
+      <div class="stat-box">
+        <div class="stat-num highlight" th:text="${activeCount}">2</div>
+        <div class="stat-label">Active Market Catches</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num" th:text="${#numbers.formatDecimal(totalKg, 0, 'COMMA', 1, 'POINT') + ' kg'}">850 kg</div>
+        <div class="stat-label">Total Catch Weight Available</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num highlight" th:text="${listings.size()}">4</div>
+        <div class="stat-label">Total Catches Logged</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num">Verified</div>
+        <div class="stat-label">Seller Account Status</div>
+      </div>
+    </div>
+
+    <!-- Management Card -->
+    <div class="glass-card">
+      <h3 style="margin-bottom: 1.25rem;">Inventory & Real-Time Status Management</h3>
+
+      <div th:if="${#lists.isEmpty(listings)}" style="text-align: center; padding: 4rem 1.5rem;">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">🎣</div>
+        <h3>No catches logged yet</h3>
+        <p style="margin: 0.5rem auto 1.5rem; max-width: 440px;">
+          When you prepare to go fishing or bring in a haul at the landing pier, post it here so buyers can purchase your harvest immediately.
+        </p>
+        <a th:href="@{/listings/new}" class="btn btn-orange">Post a Catch Now</a>
+      </div>
+
+      <div th:if="${!#lists.isEmpty(listings)}" class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Harvest / Specie</th>
+              <th>Weight & Sizing</th>
+              <th>Unit & Total Price</th>
+              <th>Pier / Grounds</th>
+              <th>Update Status</th>
+              <th style="text-align: right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="l : ${listings}">
+              <td>
+                <div style="display: flex; align-items: center; gap: 0.85rem;">
+                  <img th:src="${l.getEffectiveImageUrl()}" th:alt="${l.fishType}" style="width: 48px; height: 48px; border-radius: 10px; object-fit: cover;">
+                  <div>
+                    <a th:href="@{/listings/{id}(id=${l.id})}" style="font-weight: 700; color: var(--text-white);" th:text="${l.fishType}">Nile Tilapia</a>
+                    <div style="font-size: 0.775rem; color: var(--text-cyan);" th:text="${l.quality + ' Catch'}">Fresh Catch</div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div><b th:text="${l.quantityKg + ' kg'}">450 kg</b></div>
+                <div style="font-size: 0.775rem; color: var(--text-muted);" th:text="${l.fishPerKg != null ? l.fishPerKg + ' pcs/kg' : 'Mixed size'}">2 pcs/kg</div>
+              </td>
+              <td>
+                <div style="font-weight: 700; color: var(--accent-orange);" th:text="${l.pricePerKg + ' ' + l.currency + '/kg'}">380 KES/kg</div>
+                <div style="font-size: 0.775rem; color: var(--text-muted);" th:text="'Batch: ' + ${#numbers.formatDecimal(l.getTotalPrice(), 0, 'COMMA', 0, 'POINT')} + ' ' + ${l.currency}">Batch: 171,000 KES</div>
+              </td>
+              <td>
+                <div th:text="${l.landingSite != null ? l.landingSite : l.fishingGround}">Mbita Pier</div>
+                <div style="font-size: 0.775rem; color: var(--text-muted);" th:text="${l.country}">Kenya</div>
+              </td>
+              <td>
+                <!-- Inline status update form -->
+                <form th:action="@{/listings/{id}/status(id=${l.id})}" method="post" style="display: flex; align-items: center; gap: 0.4rem;">
+                  <select name="status" class="form-select" style="padding: 0.4rem 0.65rem; font-size: 0.825rem; width: auto;" onchange="this.form.submit()">
+                    <option th:each="s : ${statuses}" th:value="${s}" th:text="${s}" th:selected="${s == l.status}"></option>
+                  </select>
+                </form>
+              </td>
+              <td style="text-align: right;">
+                <div style="display: flex; justify-content: flex-end; gap: 0.45rem;">
+                  <a th:href="@{/listings/{id}(id=${l.id})}" class="btn btn-glass btn-sm" title="View Catch on Marketplace">View</a>
+                  <a th:href="@{/listings/{id}/edit(id=${l.id})}" class="btn btn-blue btn-sm" title="Edit Batch Details">Edit</a>
+                  <form th:action="@{/listings/{id}/delete(id=${l.id})}" method="post" style="display: inline;" onsubmit="return confirm('Are you sure you want to permanently delete this listing?');">
+                    <button type="submit" class="btn btn-danger btn-sm" title="Delete Listing">Delete</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-bottom" style="border-top: 0; padding-top: 0;">
+        <div>&copy; 2026 SamakiAfrica Technologies Ltd.</div>
+        <div style="display: flex; gap: 1.5rem;">
+          <a th:href="@{/dashboard}">Dashboard</a>
+          <a th:href="@{/listings}">Marketplace</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

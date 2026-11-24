@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orders received - SamakiAfrica</title>
+<link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<main class="container-narrow" style="padding: 3rem 1.5rem 5rem;">
+  <div class="glass-card glass-glow-subtle">
+    <h2>Orders received</h2>
+    <p th:if="${#lists.isEmpty(orders)}">No orders yet.</p>
+    <div th:each="o : ${orders}" style="border-bottom:1px solid rgba(255,255,255,.15);padding:12px 0;">
+      <h3 th:text="${o.listing.fishType}"></h3>
+      <p>Buyer: <span th:text="${o.buyer.fullName}"></span> (<span th:text="${o.buyer.phone}"></span>)</p>
+      <p><span th:text="${o.quantityKg}"></span> kg, <b th:text="${o.totalPrice} + ' ' + ${o.listing.currency}"></b></p>
+      <p th:if="${o.deliveryRequired}">Delivery to: <span th:text="${o.deliveryAddress}"></span></p>
+      <p>Status: <b th:text="${o.status}"></b></p>
+      <div th:if="${o.status.name() == 'PENDING'}">
+        <form th:action="@{/orders/{id}/accept(id=${o.id})}" method="post"><button type="submit" class="btn btn-blue">Accept</button></form>
+        <form th:action="@{/orders/{id}/decline(id=${o.id})}" method="post"><button type="submit" class="btn btn-glass">Decline</button></form>
+      </div>
+    </div>
+    <a class="btn btn-glass" th:href="@{/dashboard}">Back</a>
+  </div>
+</main>
+</body>
+</html>

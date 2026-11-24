@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Financial Control Centre – SamakiAfrica Administration</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+  <style>
+    .grid-pricing {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .pricing-card {
+      background: var(--glass-surface-card);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      padding: 1.75rem;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      transition: var(--transition);
+    }
+    .pricing-card:hover {
+      border-color: var(--glass-border-hover);
+      transform: translateY(-4px);
+      box-shadow: var(--glass-shadow-hover);
+    }
+    .pricing-card.featured {
+      border-color: rgba(249, 115, 22, 0.5);
+      background: linear-gradient(180deg, rgba(249, 115, 22, 0.08) 0%, rgba(14, 25, 52, 0.7) 100%);
+    }
+    .pricing-tier-tag {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--accent-cyan);
+      margin-bottom: 0.35rem;
+    }
+    .pricing-val-large {
+      font-size: 2.2rem;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      color: var(--text-white);
+      display: flex;
+      align-items: baseline;
+      gap: 0.35rem;
+      margin: 0.75rem 0;
+    }
+    .pricing-val-large .curr {
+      font-size: 1rem;
+      color: var(--accent-orange);
+      font-weight: 700;
+    }
+    .pricing-val-large .period {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    .benefits-list {
+      list-style: none;
+      padding: 0;
+      margin: 1.25rem 0 1.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      flex-grow: 1;
+    }
+    .benefits-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+    .benefits-list li::before {
+      content: '✓';
+      color: var(--accent-cyan);
+      font-weight: bold;
+    }
+    .promo-chip {
+      display: inline-block;
+      background: rgba(249, 115, 22, 0.18);
+      border: 1px solid rgba(249, 115, 22, 0.4);
+      color: var(--accent-orange);
+      border-radius: var(--radius-full);
+      padding: 0.2rem 0.6rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      margin-top: 0.25rem;
+    }
+    .audit-row-prev {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      text-decoration: line-through;
+    }
+    .audit-row-new {
+      color: var(--accent-cyan);
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="container nav-container">
+      <a th:href="@{/}" class="brand-logo">
+        <div class="brand-icon-wrap">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6.5 12c.94-3.46 4.94-6 8.5-6 3.56 0 6.06 2.54 7 6-.94 3.46-3.44 6-7 6s-7.56-2.54-8.5-6Z"/>
+            <path d="M18 12v.5"/>
+            <path d="M16 17.93a9.77 9.77 0 0 1 0-11.86"/>
+            <path d="M7 10.67C7 8 5.58 5.97 2.73 4 3.73 7 4 9 4 12s-.27 5-1.27 8C5.58 18.03 7 16 7 13.33v-2.66Z"/>
+          </svg>
+        </div>
+        <span>Samaki<span class="text-gradient-orange">Africa</span></span>
+        <span class="brand-badge" style="background: rgba(249, 115, 22, 0.2); color: #fb923c; border-color: rgba(249,115,22,0.4);">OWNER</span>
+      </a>
+
+      <ul class="nav-links">
+        <li><a th:href="@{/listings}" class="nav-link">Marketplace</a></li>
+        <li><a th:href="@{/dashboard}" class="nav-link">Dashboard</a></li>
+        <li><a th:href="@{/admin/financial-control}" class="nav-link active">Financial Control</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <div class="user-pill" style="border-color: rgba(249, 115, 22, 0.4);">
+          <span class="user-avatar" style="background: var(--grad-orange);" th:text="${#strings.substring(currentUser.fullName, 0, 1)}">O</span>
+          <span th:text="${currentUser.fullName}">Owner</span>
+          <span class="badge badge-owner">PLATFORM OWNER</span>
+        </div>
+        <form th:action="@{/logout}" method="post" style="display:inline;">
+          <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+          <button type="submit" class="btn btn-glass btn-sm">Log out</button>
+        </form>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <main class="container" style="padding: 2.5rem 1.5rem 5rem;">
+
+    <!-- Breadcrumb -->
+    <div class="financial-breadcrumb">
+      <span>SAMAKIAFRICA</span>
+      <span>&rsaquo;</span>
+      <span>ADMINISTRATION</span>
+      <span>&rsaquo;</span>
+      <span class="active">FINANCIAL CONTROL CENTRE</span>
+    </div>
+
+    <!-- Header Section -->
+    <div class="dashboard-header">
+      <div>
+        <div style="display: flex; align-items: center; gap: 0.65rem; margin-bottom: 0.4rem;">
+          <span class="badge badge-owner">Owner Exclusive</span>
+          <span class="badge badge-ready">Database-Driven Pricing Engine Active</span>
+        </div>
+        <h1>Financial <span class="text-gradient-orange">Control Centre</span></h1>
+        <p>Live management of subscription pricing, marketplace commissions, platform service fees, and pan-African country overrides without source code modifications.</p>
+      </div>
+
+      <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+        <button onclick="openModal('calcModal')" class="btn btn-blue">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1Z"/><line x1="16" y1="8" x2="8" y2="8"/><line x1="16" y1="12" x2="8" y2="12"/><line x1="13" y1="16" x2="8" y2="16"/></svg>
+          Commission Simulator
+        </button>
+        <a th:href="@{/dashboard}" class="btn btn-glass">
+          &larr; Back to Dashboard
+        </a>
+      </div>
+    </div>
+
+    <!-- Flash Alerts -->
+    <div th:if="${successMessage}" class="auth-alert success" style="margin-bottom: 1.5rem;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+      <span th:text="${successMessage}">Changes published successfully.</span>
+    </div>
+    <div th:if="${errorMessage}" class="auth-alert error" style="margin-bottom: 1.5rem;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+      <span th:text="${errorMessage}">Error occurred.</span>
+    </div>
+
+    <!-- NAVIGATION TABS -->
+    <div class="financial-nav-tabs">
+      <a th:href="@{/admin/financial-control(tab='subscriptions')}"
+         class="financial-nav-tab" th:classappend="${activeTab == 'subscriptions'} ? 'active' : ''">
+        <span>📦</span> 1. Subscription Pricing
+      </a>
+      <a th:href="@{/admin/financial-control(tab='commissions')}"
+         class="financial-nav-tab" th:classappend="${activeTab == 'commissions'} ? 'active' : ''">
+        <span>⚡</span> 2. Marketplace Commissions
+      </a>
+      <a th:href="@{/admin/financial-control(tab='fees')}"
+         class="financial-nav-tab" th:classappend="${activeTab == 'fees'} ? 'active' : ''">
+        <span>🛠️</span> 3. Service Charges
+      </a>
+      <a th:href="@{/admin/financial-control(tab='advertising')}"
+         class="financial-nav-tab" th:classappend="${activeTab == 'advertising'} ? 'active' : ''">
+        <span>📢</span> 4. Advertising Pricing
+      </a>
+      <a th:href="@{/admin/financial-control(tab='country-pricing')}"
+         class="financial-nav-tab" th:classappend="${activeTab == 'country-pricing'} ? 'active' : ''">
+        <span>🌍</span> 5. Country-Based Pricing
+      </a>
+      <a th:href="@{/admin/financial-control(tab='audit')}"
+         class="financial-nav-tab" th:classappend="${activeTab == 'audit'} ? 'active' : ''">
+        <span>📜</span> 6. Financial Audit History
+      </a>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- TAB 1: SUBSCRIPTION PRICING                                    -->
+    <!-- ============================================================== -->
+    <div th:if="${activeTab == 'subscriptions'}">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <h3>Platform Subscription Packages</h3>
+          <p>Configured monthly, annual, and promotional subscription charges across fisher and buyer membership tiers.</p>
+        </div>
+        <button onclick="openNewPackageModal()" class="btn btn-orange">
+          + Create Subscription Package
+        </button>
+      </div>
+
+      <!-- Pricing Cards Grid -->
+      <div class="grid-pricing">
+        <div th:each="p : ${subscriptionPackages}" class="pricing-card" th:classappend="${p.code == 'PRO_FISHER'} ? 'featured' : ''">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <div class="pricing-tier-tag" th:text="${p.tierTarget}">Target Tier</div>
+              <h3 style="color: var(--text-white);" th:text="${p.name}">Package Name</h3>
+            </div>
+            <span class="badge" th:classappend="${p.active} ? 'badge-ready' : 'badge-sold'"
+                  th:text="${p.active} ? 'ACTIVE' : 'INACTIVE'">ACTIVE</span>
+          </div>
+
+          <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0.5rem 0;" th:text="${p.description}">Description</p>
+
+          <div class="pricing-val-large">
+            <span class="curr" th:text="${p.currency}">KES</span>
+            <span th:text="${#numbers.formatDecimal(p.monthlyPrice, 0, 'COMMA', 0, 'POINT')}">1,500</span>
+            <span class="period">/ month</span>
+          </div>
+
+          <div th:if="${p.hasActivePromo()}" class="promo-chip">
+            🎉 Promo: <span th:text="${p.promoPrice + ' ' + p.currency}">1,200 KES</span>
+            <span th:if="${p.discountPercentage != null}" th:text="'(' + ${p.discountPercentage} + '% off)'"></span>
+          </div>
+
+          <div style="font-size: 0.825rem; color: var(--text-muted); margin-top: 0.4rem;">
+            Annual Billed: <b style="color: var(--text-cyan);" th:text="${#numbers.formatDecimal(p.annualPrice, 0, 'COMMA', 0, 'POINT') + ' ' + p.currency + ' / yr'}">15,000 KES / yr</b>
+            <span th:if="${p.freeTrialDays > 0}" style="margin-left: 0.5rem;">• <b style="color: #34d399;" th:text="${p.freeTrialDays + '-day trial'}">14-day trial</b></span>
+          </div>
+
+          <!-- Benefits -->
+          <ul class="benefits-list">
+            <li th:each="benefit : ${#strings.arraySplit(p.benefits, '&#10;')}" th:text="${#strings.replace(benefit, '• ', '')}">Benefit item</li>
+          </ul>
+
+          <!-- Action Buttons -->
+          <div style="display: flex; gap: 0.5rem; margin-top: auto; pt: 1rem; border-top: 1px solid var(--glass-border);">
+            <button type="button" class="btn btn-blue btn-sm" style="flex: 1;"
+                    th:attr="onclick='editPackageModal(' + ${p.id} + ', \'' + ${#strings.escapeJavaScript(p.name)} + '\', \'' + ${p.code} + '\', \'' + ${#strings.escapeJavaScript(p.tierTarget)} + '\', ' + ${p.monthlyPrice} + ', ' + ${p.annualPrice} + ', \'' + ${p.currency} + '\', \'' + ${#strings.escapeJavaScript(p.description)} + '\', \'' + ${#strings.escapeJavaScript(p.benefits)} + '\', ' + ${p.active} + ', ' + ${p.promoPrice} + ', ' + ${p.discountPercentage} + ', ' + ${p.freeTrialDays} + ')'">
+              Edit Pricing
+            </button>
+            <form th:action="@{/admin/financial-control/subscriptions/{id}/toggle(id=${p.id})}" method="post" style="display:inline;">
+              <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+              <input type="hidden" name="reason" value="Owner toggled package status" />
+              <button type="submit" class="btn btn-glass btn-sm"
+                      th:text="${p.active} ? 'Deactivate' : 'Activate'"
+                      th:title="${p.active} ? 'Suspend package for new subscriptions' : 'Enable package for signups'">
+                Toggle
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- TAB 2: MARKETPLACE COMMISSIONS                                 -->
+    <!-- ============================================================== -->
+    <div th:if="${activeTab == 'commissions'}">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <h3>Base Marketplace Commissions (Pan-African)</h3>
+          <p>Global baseline percentage fees automatically calculated on fish catches, equipment, aquaculture feed, and rider deliveries.</p>
+        </div>
+        <button onclick="openModal('calcModal')" class="btn btn-blue">
+          📊 Open Live Commission Calculator
+        </button>
+      </div>
+
+      <!-- Commission Table -->
+      <div class="glass-card" style="padding: 0; overflow: hidden; margin-bottom: 2rem;">
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th>Scope</th>
+                <th>Commission Rate (%)</th>
+                <th>Floor (Min)</th>
+                <th>Cap (Max)</th>
+                <th>Status</th>
+                <th>Last Updated</th>
+                <th style="text-align: right;">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr th:each="c : ${baseCommissions}">
+                <td>
+                  <b style="color: var(--text-white);" th:text="${c.categoryLabel}">Fish Marketplace</b>
+                  <div style="font-size: 0.75rem; color: var(--text-muted);" th:text="${c.category}">FISH_MARKETPLACE</div>
+                </td>
+                <td>
+                  <span class="badge badge-role">PAN-AFRICAN (ALL)</span>
+                </td>
+                <td>
+                  <span style="font-size: 1.25rem; font-weight: 800; color: var(--accent-orange);" th:text="${c.ratePercentage + '%'}">3.5%</span>
+                </td>
+                <td th:text="${c.minAmount != null ? c.minAmount + ' ' + c.currency : 'None'}">20 KES</td>
+                <td th:text="${c.maxAmount != null ? c.maxAmount + ' ' + c.currency : 'None'}">15,000 KES</td>
+                <td>
+                  <span class="badge" th:classappend="${c.active} ? 'badge-ready' : 'badge-sold'"
+                        th:text="${c.active} ? 'ACTIVE' : 'INACTIVE'">ACTIVE</span>
+                </td>
+                <td>
+                  <span style="font-size: 0.8rem; color: var(--text-secondary);"
+                        th:text="${#temporals.format(c.updatedAt, 'yyyy-MM-dd HH:mm')}">2026-11-19</span>
+                  <div style="font-size: 0.725rem; color: var(--text-muted);" th:text="${c.updatedBy}">owner</div>
+                </td>
+                <td style="text-align: right;">
+                  <button type="button" class="btn btn-blue btn-sm"
+                          th:attr="onclick='editCommissionModal(' + ${c.id} + ', \'' + ${c.category} + '\', \'' + ${#strings.escapeJavaScript(c.categoryLabel)} + '\', \'' + ${c.countryCode} + '\', ' + ${c.ratePercentage} + ', ' + ${c.minAmount} + ', ' + ${c.maxAmount} + ', \'' + ${c.currency} + '\', \'' + ${#strings.escapeJavaScript(c.notes)} + '\', ' + ${c.active} + ')'">
+                    Edit Rate
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Commission Rules Info Box -->
+      <div class="glass-card" style="border-left: 4px solid var(--accent-cyan);">
+        <h4 style="color: var(--text-white); margin-bottom: 0.5rem;">🔒 Server-Side Price Protection Guarantee</h4>
+        <p style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.6;">
+          Commission percentages are strictly calculated and validated on the backend. Frontend requests are never allowed to submit custom commission amounts. If a country-specific override exists for the buyer/seller territory, it takes precedence; otherwise, the Pan-African base rate applies automatically. Completed orders retain their historical locked commission forever.
+        </p>
+      </div>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- TAB 3: SERVICE CHARGES                                         -->
+    <!-- ============================================================== -->
+    <div th:if="${activeTab == 'fees'}">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <h3>Platform Service Charges & AI Advisory</h3>
+          <p>Manage listing upgrades, cold-chain logistics arrangement fees, escrow assurance charges, and premium AI services.</p>
+        </div>
+        <button onclick="openNewFeeModal('SERVICE_CHARGE', 'fees')" class="btn btn-orange">
+          + Add Platform Service Charge
+        </button>
+      </div>
+
+      <div class="glass-card" style="padding: 0; overflow: hidden;">
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Service Name / Key</th>
+                <th>Category</th>
+                <th>Charge Amount</th>
+                <th>Billing Unit</th>
+                <th>Status</th>
+                <th>Last Updated</th>
+                <th style="text-align: right;">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr th:each="f : ${serviceCharges}">
+                <td>
+                  <b style="color: var(--text-white);" th:text="${f.name}">Featured Catch Listing</b>
+                  <div style="font-size: 0.75rem; color: var(--text-muted);" th:text="${f.feeKey}">FEATURED_LISTING_FEE</div>
+                  <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;" th:text="${f.description}">Description</div>
+                </td>
+                <td>
+                  <span class="badge badge-role" th:text="${f.feeCategory}">SERVICE_CHARGE</span>
+                </td>
+                <td>
+                  <span style="font-size: 1.25rem; font-weight: 800; color: var(--accent-cyan);"
+                        th:text="${#numbers.formatDecimal(f.amount, 0, 'COMMA', 2, 'POINT') + ' ' + f.currency}">350.00 KES</span>
+                </td>
+                <td>
+                  <span class="badge badge-going" th:text="${f.billingUnit}">PER_POST</span>
+                </td>
+                <td>
+                  <span class="badge" th:classappend="${f.active} ? 'badge-ready' : 'badge-sold'"
+                        th:text="${f.active} ? 'ACTIVE' : 'INACTIVE'">ACTIVE</span>
+                </td>
+                <td>
+                  <span style="font-size: 0.8rem; color: var(--text-secondary);"
+                        th:text="${#temporals.format(f.updatedAt, 'yyyy-MM-dd HH:mm')}">2026-11-19</span>
+                  <div style="font-size: 0.725rem; color: var(--text-muted);" th:text="${f.updatedBy}">owner</div>
+                </td>
+                <td style="text-align: right;">
+                  <button type="button" class="btn btn-blue btn-sm"
+                          th:attr="onclick='editFeeModal(' + ${f.id} + ', \'' + ${#strings.escapeJavaScript(f.name)} + '\', \'' + ${f.feeKey} + '\', \'' + ${f.feeCategory} + '\', ' + ${f.amount} + ', \'' + ${f.currency} + '\', \'' + ${f.billingUnit} + '\', \'' + ${#strings.escapeJavaScript(f.description)} + '\', ' + ${f.active} + ', \'fees\')'">
+                    Edit Charge
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- TAB 4: ADVERTISING PRICING                                     -->
+    <!-- ============================================================== -->
+    <div th:if="${activeTab == 'advertising'}">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <h3>Commercial Advertising & Supplier Sponsorships</h3>
+          <p>Set billboard rates for equipment dealers, fingerling hatcheries, aquafeed mills, and boat manufacturers.</p>
+        </div>
+        <button onclick="openNewFeeModal('ADVERTISING', 'advertising')" class="btn btn-orange">
+          + Add Advertising Placement
+        </button>
+      </div>
+
+      <div class="glass-card" style="padding: 0; overflow: hidden;">
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Ad Placement / Slot</th>
+                <th>Key</th>
+                <th>Rate Card Amount</th>
+                <th>Billing Unit</th>
+                <th>Status</th>
+                <th>Last Updated</th>
+                <th style="text-align: right;">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr th:each="a : ${advertisingCharges}">
+                <td>
+                  <b style="color: var(--text-white);" th:text="${a.name}">Hero Banner Ad</b>
+                  <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;" th:text="${a.description}">Description</div>
+                </td>
+                <td>
+                  <code style="color: var(--accent-orange); font-size: 0.8rem;" th:text="${a.feeKey}">AD_BANNER_HERO</code>
+                </td>
+                <td>
+                  <span style="font-size: 1.25rem; font-weight: 800; color: var(--accent-orange);"
+                        th:text="${#numbers.formatDecimal(a.amount, 0, 'COMMA', 2, 'POINT') + ' ' + a.currency}">1,200.00 KES</span>
+                </td>
+                <td>
+                  <span class="badge badge-going" th:text="${a.billingUnit}">PER_DAY</span>
+                </td>
+                <td>
+                  <span class="badge" th:classappend="${a.active} ? 'badge-ready' : 'badge-sold'"
+                        th:text="${a.active} ? 'ACTIVE' : 'INACTIVE'">ACTIVE</span>
+                </td>
+                <td>
+                  <span style="font-size: 0.8rem; color: var(--text-secondary);"
+                        th:text="${#temporals.format(a.updatedAt, 'yyyy-MM-dd HH:mm')}">2026-11-19</span>
+                  <div style="font-size: 0.725rem; color: var(--text-muted);" th:text="${a.updatedBy}">owner</div>
+                </td>
+                <td style="text-align: right;">
+                  <button type="button" class="btn btn-blue btn-sm"
+                          th:attr="onclick='editFeeModal(' + ${a.id} + ', \'' + ${#strings.escapeJavaScript(a.name)} + '\', \'' + ${a.feeKey} + '\', \'' + ${a.feeCategory} + '\', ' + ${a.amount} + ', \'' + ${a.currency} + '\', \'' + ${a.billingUnit} + '\', \'' + ${#strings.escapeJavaScript(a.description)} + '\', ' + ${a.active} + ', \'advertising\')'">
+                    Edit Ad Rate
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- TAB 5: COUNTRY-BASED PRICING                                   -->
+    <!-- ============================================================== -->
+    <div th:if="${activeTab == 'country-pricing'}">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <h3>Country-Specific Commission & Rate Overrides</h3>
+          <p>Configure custom regional rates for specific African nations to support local market entry, taxes, and currency considerations.</p>
+        </div>
+        <button onclick="openCountryPricingModal()" class="btn btn-orange">
+          + Add Country Rate Override
+        </button>
+      </div>
+
+      <div class="glass-card" style="padding: 0; overflow: hidden;">
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Country Territory</th>
+                <th>Marketplace Category</th>
+                <th>Custom Rate (%)</th>
+                <th>Floor (Min)</th>
+                <th>Cap (Max)</th>
+                <th>Notes / Market Basis</th>
+                <th>Status</th>
+                <th style="text-align: right;">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr th:each="co : ${countryOverrides}">
+                <td>
+                  <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="font-size: 1.2rem;">🌍</span>
+                    <b style="color: var(--text-white);" th:text="${co.countryCode}">Kenya</b>
+                  </div>
+                </td>
+                <td>
+                  <span th:text="${co.categoryLabel}">Fish Catch Marketplace</span>
+                  <div style="font-size: 0.725rem; color: var(--text-muted);" th:text="${co.category}">FISH_MARKETPLACE</div>
+                </td>
+                <td>
+                  <span style="font-size: 1.25rem; font-weight: 800; color: var(--accent-orange);" th:text="${co.ratePercentage + '%'}">3.0%</span>
+                </td>
+                <td th:text="${co.minAmount != null ? co.minAmount + ' ' + co.currency : 'None'}">20 KES</td>
+                <td th:text="${co.maxAmount != null ? co.maxAmount + ' ' + co.currency : 'None'}">12,000 KES</td>
+                <td style="font-size: 0.825rem; color: var(--text-secondary);" th:text="${co.notes}">Local domestic rate</td>
+                <td>
+                  <span class="badge" th:classappend="${co.active} ? 'badge-ready' : 'badge-sold'"
+                        th:text="${co.active} ? 'ACTIVE' : 'INACTIVE'">ACTIVE</span>
+                </td>
+                <td style="text-align: right;">
+                  <button type="button" class="btn btn-blue btn-sm"
+                          th:attr="onclick='editCommissionModal(' + ${co.id} + ', \'' + ${co.category} + '\', \'' + ${#strings.escapeJavaScript(co.categoryLabel)} + '\', \'' + ${co.countryCode} + '\', ' + ${co.ratePercentage} + ', ' + ${co.minAmount} + ', ' + ${co.maxAmount} + ', \'' + ${co.currency} + '\', \'' + ${#strings.escapeJavaScript(co.notes)} + '\', ' + ${co.active} + ')'">
+                    Edit Rate
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- TAB 6: FINANCIAL AUDIT HISTORY                                 -->
+    <!-- ============================================================== -->
+    <div th:if="${activeTab == 'audit'}">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <h3>Financial Configuration Audit Trail</h3>
+          <p>Immutable forensic record of all pricing and commission changes, previous values, authorizing owner, and justification.</p>
+        </div>
+        <form th:action="@{/admin/financial-control}" method="get" style="display: flex; gap: 0.5rem;">
+          <input type="hidden" name="tab" value="audit" />
+          <input type="text" name="q" th:value="${auditQuery}" placeholder="Search audit logs..." class="form-input" style="padding: 0.5rem 0.85rem; width: 240px; font-size: 0.85rem;">
+          <button type="submit" class="btn btn-blue btn-sm">Search</button>
+          <a th:if="${auditQuery != null && !auditQuery.isBlank()}" th:href="@{/admin/financial-control(tab='audit')}" class="btn btn-glass btn-sm">Clear</a>
+        </form>
+      </div>
+
+      <div class="glass-card" style="padding: 0; overflow: hidden;">
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Timestamp (UTC)</th>
+                <th>Domain / Scope</th>
+                <th>Target Identifier</th>
+                <th>Action</th>
+                <th>Previous Value</th>
+                <th>New Value</th>
+                <th>Authorized By</th>
+                <th>Reason / Justification</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr th:if="${#lists.isEmpty(auditLogs)}">
+                <td colspan="8" style="text-align: center; padding: 2.5rem; color: var(--text-muted);">
+                  No audit history records found matching criteria.
+                </td>
+              </tr>
+              <tr th:each="log : ${auditLogs}">
+                <td style="font-size: 0.8rem; color: var(--text-secondary); white-space: nowrap;"
+                    th:text="${#temporals.format(log.timestamp, 'yyyy-MM-dd HH:mm:ss')}">2026-11-19 10:45:00</td>
+                <td>
+                  <span class="badge badge-role" th:text="${log.domain}">COMMISSION</span>
+                  <div style="font-size: 0.725rem; color: var(--text-muted); margin-top: 2px;" th:text="${log.scopeCountry}">Kenya</div>
+                </td>
+                <td>
+                  <b style="color: var(--text-white); font-size: 0.85rem;" th:text="${log.targetIdentifier}">FISH_MARKETPLACE</b>
+                </td>
+                <td>
+                  <span class="badge" th:classappend="${log.action == 'CREATE' ? 'badge-ready' : (log.action == 'UPDATE' ? 'badge-caught' : 'badge-going')}"
+                        th:text="${log.action}">UPDATE</span>
+                </td>
+                <td>
+                  <div class="audit-row-prev" th:text="${log.previousValue}">Prev</div>
+                </td>
+                <td>
+                  <div class="audit-row-new" th:text="${log.newValue}">New</div>
+                </td>
+                <td>
+                  <span style="font-size: 0.8rem; color: var(--accent-orange);" th:text="${log.changedBy}">owner@samaki.africa</span>
+                </td>
+                <td style="font-size: 0.825rem; color: var(--text-secondary); max-width: 250px;" th:text="${log.reason}">
+                  Direct owner adjustment
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ============================================================== -->
+  <!-- MODALS                                                         -->
+  <!-- ============================================================== -->
+
+  <!-- 1. Subscription Package Modal -->
+  <div id="pkgModal" class="modal-overlay">
+    <div class="modal-box" style="max-width: 600px;">
+      <button class="modal-close" onclick="closeModal('pkgModal')">&times;</button>
+      <h3 id="pkgModalTitle" style="margin-bottom: 0.5rem; color: var(--text-white);">Edit Subscription Package</h3>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">Configure tier parameters and billing pricing.</p>
+
+      <form th:action="@{/admin/financial-control/subscriptions/save}" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+        <input type="hidden" id="pkgId" name="id" />
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Package Code <span class="req">*</span></label>
+            <input type="text" id="pkgCode" name="code" class="form-input" required placeholder="e.g. PRO_FISHER">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Package Name <span class="req">*</span></label>
+            <input type="text" id="pkgName" name="name" class="form-input" required placeholder="e.g. Artisanal Pro Fisher">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Target Audience / Tier</label>
+          <input type="text" id="pkgTarget" name="tierTarget" class="form-input" placeholder="e.g. Master Fishers & Boat Owners">
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr 100px; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Monthly Price <span class="req">*</span></label>
+            <input type="number" step="0.01" id="pkgMonthly" name="monthlyPrice" class="form-input" required placeholder="1500.00">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Annual Price <span class="req">*</span></label>
+            <input type="number" step="0.01" id="pkgAnnual" name="annualPrice" class="form-input" required placeholder="15000.00">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Currency</label>
+            <input type="text" id="pkgCurrency" name="currency" class="form-input" value="KES" required>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Promo Price</label>
+            <input type="number" step="0.01" id="pkgPromo" name="promoPrice" class="form-input" placeholder="1200.00">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Discount %</label>
+            <input type="number" step="0.01" id="pkgDiscount" name="discountPercentage" class="form-input" placeholder="20.00">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Free Trial (Days)</label>
+            <input type="number" id="pkgTrial" name="freeTrialDays" class="form-input" value="0">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Benefits List (One per line)</label>
+          <textarea id="pkgBenefits" name="benefits" class="form-textarea" rows="4" placeholder="• Unlimited fish listings&#10;• Priority showcase"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Package Description</label>
+          <input type="text" id="pkgDesc" name="description" class="form-input" placeholder="Short description of tier value">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Reason for Pricing Adjustment <span class="req">*</span></label>
+          <input type="text" name="reason" class="form-input" required placeholder="e.g. Q1 annual price adjustment / seasonal incentive">
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem;">
+          <input type="checkbox" id="pkgActive" name="active" value="true" checked style="width: 18px; height: 18px; accent-color: var(--accent-orange);">
+          <label for="pkgActive" style="font-size: 0.875rem; color: var(--text-primary); cursor: pointer;">
+            Package Active (Users can select and subscribe to this tier)
+          </label>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+          <button type="button" onclick="closeModal('pkgModal')" class="btn btn-glass">Cancel</button>
+          <button type="submit" class="btn btn-orange" onclick="return confirm('Confirm publishing these subscription pricing updates?');">
+            Save Subscription Package
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. Commission Setting Modal -->
+  <div id="commModal" class="modal-overlay">
+    <div class="modal-box" style="max-width: 540px;">
+      <button class="modal-close" onclick="closeModal('commModal')">&times;</button>
+      <h3 style="margin-bottom: 0.5rem; color: var(--text-white);">Edit Marketplace Commission</h3>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">Configure commission percentage and floor/cap safeguards.</p>
+
+      <form th:action="@{/admin/financial-control/commissions/save}" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+        <input type="hidden" id="commId" name="id" />
+        <input type="hidden" id="commCategory" name="category" />
+
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <input type="text" id="commCategoryLabel" name="categoryLabel" class="form-input" readonly style="opacity: 0.8;">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Scope / Territory</label>
+          <input type="text" id="commCountry" name="countryCode" class="form-input" readonly style="opacity: 0.8;">
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Commission Rate (%) <span class="req">*</span></label>
+            <input type="number" step="0.01" min="0" max="100" id="commRate" name="ratePercentage" class="form-input" required placeholder="3.50">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Min Amount</label>
+            <input type="number" step="0.01" id="commMin" name="minAmount" class="form-input" placeholder="20.00">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Max Amount</label>
+            <input type="number" step="0.01" id="commMax" name="maxAmount" class="form-input" placeholder="15000.00">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Operational Notes / Reason</label>
+          <input type="text" id="commNotes" name="notes" class="form-input" placeholder="e.g. Approved board reduction to 3.0%">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Reason for Rate Change (Recorded in Audit Trail) <span class="req">*</span></label>
+          <input type="text" name="reason" class="form-input" required placeholder="e.g. Competitive alignment with lake pier co-ops">
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem;">
+          <input type="checkbox" id="commActive" name="active" value="true" checked style="width: 18px; height: 18px; accent-color: var(--accent-orange);">
+          <label for="commActive" style="font-size: 0.875rem; color: var(--text-primary); cursor: pointer;">
+            Rate Active & Applicable
+          </label>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+          <button type="button" onclick="closeModal('commModal')" class="btn btn-glass">Cancel</button>
+          <button type="submit" class="btn btn-orange" onclick="return confirm('Publish this commission rate change? All future marketplace orders will apply this updated rate.');">
+            Publish Commission Change
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 3. Country Override Creation Modal -->
+  <div id="countryModal" class="modal-overlay">
+    <div class="modal-box" style="max-width: 540px;">
+      <button class="modal-close" onclick="closeModal('countryModal')">&times;</button>
+      <h3 style="margin-bottom: 0.5rem; color: var(--text-white);">Add Country Rate Override</h3>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">Establish specific regional commission rates for a designated African territory.</p>
+
+      <form th:action="@{/admin/financial-control/country-pricing/save}" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+        <div class="form-group">
+          <label class="form-label">Target African Country <span class="req">*</span></label>
+          <select name="countryCode" class="form-select" required>
+            <option value="">-- Select Country --</option>
+            <option th:each="c : ${africanCountries}" th:value="${c}" th:text="${c}">Kenya</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Marketplace Category <span class="req">*</span></label>
+          <select name="category" class="form-select" required onchange="updateCountryCategoryLabel(this)">
+            <option value="FISH_MARKETPLACE" data-label="Fish Catch Marketplace">Fish Catch Marketplace</option>
+            <option value="EQUIPMENT_MARKETPLACE" data-label="Fishing Gear & Vessels">Fishing Gear & Vessels</option>
+            <option value="SUPPLIER_COMMISSION" data-label="Aquaculture Feed & Fingerlings">Aquaculture Feed & Fingerlings</option>
+            <option value="COLD_CHAIN_LOGISTICS" data-label="Cold-Chain Logistics & Riders">Cold-Chain Logistics & Riders</option>
+            <option value="OTHER_TRANSACTIONS" data-label="Ancillary Maritime Services">Ancillary Maritime Services</option>
+          </select>
+          <input type="hidden" id="countryCatLabelHidden" name="categoryLabel" value="Fish Catch Marketplace" />
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Rate (%) <span class="req">*</span></label>
+            <input type="number" step="0.01" min="0" max="100" name="ratePercentage" class="form-input" required placeholder="3.00">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Min Floor</label>
+            <input type="number" step="0.01" name="minAmount" class="form-input" placeholder="20.00">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Max Cap</label>
+            <input type="number" step="0.01" name="maxAmount" class="form-input" placeholder="15000.00">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Market Notes</label>
+          <input type="text" name="notes" class="form-input" placeholder="e.g. Local national trade incentive rate">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Reason for Country Rate Setting <span class="req">*</span></label>
+          <input type="text" name="reason" class="form-input" required placeholder="e.g. Expansion launch promotion for national co-operatives">
+        </div>
+
+        <input type="hidden" name="active" value="true">
+
+        <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+          <button type="button" onclick="closeModal('countryModal')" class="btn btn-glass">Cancel</button>
+          <button type="submit" class="btn btn-orange">Save Country Rate Override</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 4. Platform Fee & Advertising Modal -->
+  <div id="feeModal" class="modal-overlay">
+    <div class="modal-box" style="max-width: 520px;">
+      <button class="modal-close" onclick="closeModal('feeModal')">&times;</button>
+      <h3 id="feeModalTitle" style="margin-bottom: 0.5rem; color: var(--text-white);">Edit Platform Charge</h3>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">Configure unit charge amount and billing cycle.</p>
+
+      <form th:action="@{/admin/financial-control/fees/save}" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+        <input type="hidden" id="feeId" name="id" />
+        <input type="hidden" id="feeReturnTab" name="returnTab" value="fees" />
+
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <select id="feeCategory" name="feeCategory" class="form-select" required>
+            <option value="SERVICE_CHARGE">Service Charge</option>
+            <option value="ADVERTISING">Advertising</option>
+            <option value="LOGISTICS">Logistics</option>
+            <option value="AI_PREMIUM">AI Premium Advisory</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Unique Fee Key <span class="req">*</span></label>
+          <input type="text" id="feeKey" name="feeKey" class="form-input" required placeholder="e.g. FEATURED_LISTING_FEE">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Charge Name <span class="req">*</span></label>
+          <input type="text" id="feeName" name="name" class="form-input" required placeholder="e.g. Featured Catch Listing (7 Days)">
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Amount <span class="req">*</span></label>
+            <input type="number" step="0.01" id="feeAmount" name="amount" class="form-input" required placeholder="350.00">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Currency</label>
+            <input type="text" id="feeCurrency" name="currency" class="form-input" value="KES" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Billing Unit</label>
+            <select id="feeUnit" name="billingUnit" class="form-select" required>
+              <option value="PER_POST">PER_POST</option>
+              <option value="PER_DAY">PER_DAY</option>
+              <option value="PER_ORDER">PER_ORDER</option>
+              <option value="PER_MONTH">PER_MONTH</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <input type="text" id="feeDescription" name="description" class="form-input" placeholder="Service description and scope">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Reason for Change <span class="req">*</span></label>
+          <input type="text" name="reason" class="form-input" required placeholder="e.g. Annual revision of cold chain logistics fees">
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem;">
+          <input type="checkbox" id="feeActive" name="active" value="true" checked style="width: 18px; height: 18px; accent-color: var(--accent-orange);">
+          <label for="feeActive" style="font-size: 0.875rem; color: var(--text-primary); cursor: pointer;">
+            Active Charge
+          </label>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+          <button type="button" onclick="closeModal('feeModal')" class="btn btn-glass">Cancel</button>
+          <button type="submit" class="btn btn-orange">Save Charge Setting</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 5. Interactive Commission Calculator Simulator Modal -->
+  <div id="calcModal" class="modal-overlay">
+    <div class="modal-box" style="max-width: 580px;">
+      <button class="modal-close" onclick="closeModal('calcModal')">&times;</button>
+      <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.5rem;">
+        <span style="font-size: 1.5rem;">📊</span>
+        <h3 style="color: var(--text-white);">Interactive Commission Simulator</h3>
+      </div>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">Simulate real-time commission calculations using current database-stored rates and bounds.</p>
+
+      <div class="form-group">
+        <label class="form-label">Transaction Category</label>
+        <select id="simCategory" class="form-select" onchange="runSimulation()">
+          <option value="FISH_MARKETPLACE">Fish Catch Marketplace</option>
+          <option value="EQUIPMENT_MARKETPLACE">Fishing Gear & Vessels</option>
+          <option value="SUPPLIER_COMMISSION">Aquaculture Feed & Fingerlings</option>
+          <option value="COLD_CHAIN_LOGISTICS">Cold-Chain Logistics & Riders</option>
+          <option value="OTHER_TRANSACTIONS">Ancillary Maritime Services</option>
+        </select>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 1rem;">
+        <div class="form-group">
+          <label class="form-label">Gross Transaction Value (KES)</label>
+          <input type="number" id="simAmount" class="form-input" value="45000" step="100" oninput="runSimulation()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Country Territory</label>
+          <select id="simCountry" class="form-select" onchange="runSimulation()">
+            <option value="Kenya">Kenya</option>
+            <option value="Tanzania">Tanzania</option>
+            <option value="Uganda">Uganda</option>
+            <option value="Nigeria">Nigeria</option>
+            <option value="Senegal">Senegal</option>
+            <option value="Egypt">Egypt</option>
+            <option value="South Africa">South Africa</option>
+            <option value="Ghana">Ghana</option>
+            <option value="Mozambique">Mozambique</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Simulation Result Card -->
+      <div class="calc-preview-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+          <span style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Engine Simulation Breakdown</span>
+          <span id="simRuleApplied" class="badge badge-ready">Country Override</span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+          <div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">Effective Commission Rate</div>
+            <div id="simRate" style="font-size: 1.35rem; font-weight: 800; color: var(--accent-orange);">3.00%</div>
+          </div>
+          <div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">Platform Commission Cut</div>
+            <div id="simCommission" style="font-size: 1.35rem; font-weight: 800; color: var(--accent-orange);">1,350.00 KES</div>
+          </div>
+        </div>
+
+        <div style="padding-top: 0.75rem; border-top: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 0.875rem; color: var(--text-primary); font-weight: 600;">Net Fisher / Seller Payout:</span>
+          <span id="simNetPayout" style="font-size: 1.35rem; font-weight: 800; color: #34d399;">43,650.00 KES</span>
+        </div>
+      </div>
+
+      <div style="text-align: right;">
+        <button type="button" onclick="closeModal('calcModal')" class="btn btn-blue">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript for Modals & Interactive Commission Simulator -->
+  <script>
+    function openModal(id) {
+      document.getElementById(id).classList.add('active');
+    }
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('active');
+    }
+
+    function openNewPackageModal() {
+      document.getElementById('pkgModalTitle').innerText = 'Create New Subscription Package';
+      document.getElementById('pkgId').value = '';
+      document.getElementById('pkgCode').value = '';
+      document.getElementById('pkgCode').readOnly = false;
+      document.getElementById('pkgName').value = '';
+      document.getElementById('pkgTarget').value = '';
+      document.getElementById('pkgMonthly').value = '';
+      document.getElementById('pkgAnnual').value = '';
+      document.getElementById('pkgCurrency').value = 'KES';
+      document.getElementById('pkgPromo').value = '';
+      document.getElementById('pkgDiscount').value = '';
+      document.getElementById('pkgTrial').value = '0';
+      document.getElementById('pkgBenefits').value = '';
+      document.getElementById('pkgDesc').value = '';
+      document.getElementById('pkgActive').checked = true;
+      openModal('pkgModal');
+    }
+
+    function editPackageModal(id, name, code, target, monthly, annual, currency, desc, benefits, active, promo, discount, trial) {
+      document.getElementById('pkgModalTitle').innerText = 'Edit Package: ' + name;
+      document.getElementById('pkgId').value = id;
+      document.getElementById('pkgCode').value = code;
+      document.getElementById('pkgCode').readOnly = true;
+      document.getElementById('pkgName').value = name;
+      document.getElementById('pkgTarget').value = target || '';
+      document.getElementById('pkgMonthly').value = monthly;
+      document.getElementById('pkgAnnual').value = annual;
+      document.getElementById('pkgCurrency').value = currency || 'KES';
+      document.getElementById('pkgPromo').value = (promo !== 'null' && promo !== null) ? promo : '';
+      document.getElementById('pkgDiscount').value = (discount !== 'null' && discount !== null) ? discount : '';
+      document.getElementById('pkgTrial').value = trial || 0;
+      document.getElementById('pkgBenefits').value = benefits || '';
+      document.getElementById('pkgDesc').value = desc || '';
+      document.getElementById('pkgActive').checked = Boolean(active);
+      openModal('pkgModal');
+    }
+
+    function editCommissionModal(id, cat, label, country, rate, min, max, currency, notes, active) {
+      document.getElementById('commId').value = id;
+      document.getElementById('commCategory').value = cat;
+      document.getElementById('commCategoryLabel').value = label;
+      document.getElementById('commCountry').value = country;
+      document.getElementById('commRate').value = rate;
+      document.getElementById('commMin').value = (min !== 'null' && min !== null) ? min : '';
+      document.getElementById('commMax').value = (max !== 'null' && max !== null) ? max : '';
+      document.getElementById('commNotes').value = notes || '';
+      document.getElementById('commActive').checked = Boolean(active);
+      openModal('commModal');
+    }
+
+    function openCountryPricingModal() {
+      openModal('countryModal');
+    }
+
+    function updateCountryCategoryLabel(select) {
+      const opt = select.options[select.selectedIndex];
+      document.getElementById('countryCatLabelHidden').value = opt.getAttribute('data-label') || select.value;
+    }
+
+    function openNewFeeModal(cat, returnTab) {
+      document.getElementById('feeModalTitle').innerText = (cat === 'ADVERTISING') ? 'New Advertising Rate Card' : 'New Service Fee';
+      document.getElementById('feeId').value = '';
+      document.getElementById('feeReturnTab').value = returnTab;
+      document.getElementById('feeCategory').value = cat;
+      document.getElementById('feeKey').value = '';
+      document.getElementById('feeKey').readOnly = false;
+      document.getElementById('feeName').value = '';
+      document.getElementById('feeAmount').value = '';
+      document.getElementById('feeCurrency').value = 'KES';
+      document.getElementById('feeUnit').value = (cat === 'ADVERTISING') ? 'PER_DAY' : 'PER_POST';
+      document.getElementById('feeDescription').value = '';
+      document.getElementById('feeActive').checked = true;
+      openModal('feeModal');
+    }
+
+    function editFeeModal(id, name, key, cat, amount, currency, unit, desc, active, returnTab) {
+      document.getElementById('feeModalTitle').innerText = 'Edit Charge: ' + name;
+      document.getElementById('feeId').value = id;
+      document.getElementById('feeReturnTab').value = returnTab;
+      document.getElementById('feeCategory').value = cat;
+      document.getElementById('feeKey').value = key;
+      document.getElementById('feeKey').readOnly = true;
+      document.getElementById('feeName').value = name;
+      document.getElementById('feeAmount').value = amount;
+      document.getElementById('feeCurrency').value = currency || 'KES';
+      document.getElementById('feeUnit').value = unit || 'PER_POST';
+      document.getElementById('feeDescription').value = desc || '';
+      document.getElementById('feeActive').checked = Boolean(active);
+      openModal('feeModal');
+    }
+
+    // Commission calculation API call
+    async function runSimulation() {
+      const cat = document.getElementById('simCategory').value;
+      const amount = document.getElementById('simAmount').value || 0;
+      const country = document.getElementById('simCountry').value;
+
+      try {
+        const res = await fetch(`/admin/financial-control/api/calculate-commission?category=${encodeURIComponent(cat)}&country=${encodeURIComponent(country)}&amount=${encodeURIComponent(amount)}`);
+        if (res.ok) {
+          const data = await res.json();
+          document.getElementById('simRate').innerText = data.effectiveRatePercentage.toFixed(2) + '%';
+          document.getElementById('simCommission').innerText = data.commissionAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' ' + data.currency;
+          document.getElementById('simNetPayout').innerText = data.netPayout.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' ' + data.currency;
+          document.getElementById('simRuleApplied').innerText = data.ruleApplied;
+        }
+      } catch (err) {
+        console.error('Simulation error:', err);
+      }
+    }
+
+    // Run simulation on load when calc modal opens
+    document.addEventListener('DOMContentLoaded', () => {
+      runSimulation();
+    });
+  </script>
+
+</body>
+</html>

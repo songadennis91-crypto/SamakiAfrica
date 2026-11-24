@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard – SamakiAfrica</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="container nav-container">
+      <a th:href="@{/}" class="brand-logo">
+        <div class="brand-icon-wrap">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6.5 12c.94-3.46 4.94-6 8.5-6 3.56 0 6.06 2.54 7 6-.94 3.46-3.44 6-7 6s-7.56-2.54-8.5-6Z"/>
+            <path d="M18 12v.5"/>
+            <path d="M16 17.93a9.77 9.77 0 0 1 0-11.86"/>
+            <path d="M7 10.67C7 8 5.58 5.97 2.73 4 3.73 7 4 9 4 12s-.27 5-1.27 8C5.58 18.03 7 16 7 13.33v-2.66Z"/>
+          </svg>
+        </div>
+        <span>Samaki<span class="text-gradient-orange">Africa</span></span>
+        <span class="brand-badge">Hub</span>
+      </a>
+
+      <ul class="nav-links">
+        <li><a th:href="@{/listings}" class="nav-link">Marketplace</a></li>
+        <li><a th:href="@{/listings?quality=Fresh}" class="nav-link">Fresh Catch</a></li>
+        <li><a th:href="@{/dashboard}" class="nav-link active">Dashboard</a></li>
+        <li th:if="${currentUser.isOwner()}">
+          <a th:href="@{/admin/financial-control}" class="nav-link" style="color: var(--accent-orange); font-weight: 700;">Financial Control</a>
+        </li>
+        <li th:if="${currentUser.isOwner() || currentUser.isSystemDeveloper()}">
+          <a th:href="@{/admin/security}" class="nav-link" style="color: var(--accent-cyan); font-weight: 700;">Security Centre</a>
+        </li>
+      </ul>
+
+      <div class="nav-actions">
+        <div class="user-pill">
+          <span class="user-avatar" th:text="${#strings.substring(currentUser.fullName, 0, 1)}">U</span>
+          <span th:text="${currentUser.fullName}">User</span>
+          <span class="badge badge-role" th:text="${currentUser.role}">FISHER</span>
+        </div>
+        <form th:action="@{/logout}" method="post" style="display:inline;">
+          <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+          <button type="submit" class="btn btn-glass btn-sm">Log out</button>
+        </form>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <main class="container" style="padding: 2.5rem 1.5rem 5rem;">
+
+    <!-- Dashboard Top Bar -->
+    <div class="dashboard-header">
+      <div>
+        <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.35rem;">
+          <span class="badge badge-ready" th:text="'Account: ' + ${currentUser.role}">Verified Fisher</span>
+          <span style="font-size: 0.85rem; color: var(--text-muted);" th:text="${currentUser.country}">Kenya</span>
+        </div>
+        <h1>Welcome, <span class="text-gradient-blue" th:text="${currentUser.fullName}">Dennis</span></h1>
+        <p th:if="${isSeller}">Manage your active catches, post newly hauled fish, and track wholesale buyer inquiries.</p>
+        <p th:if="${!isSeller}">Source fresh artisanal and commercial fish, track dock landings, and place bulk procurement orders.</p>
+      </div>
+
+      <div style="display: flex; gap: 0.75rem;">
+        <a th:if="${isSeller}" th:href="@{/listings/new}" class="btn btn-orange">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          Post a Catch
+        </a>
+        <a th:href="@{/listings}" class="btn btn-glass">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          Browse Marketplace
+        </a>
+      </div>
+    </div>
+
+    <!-- PLATFORM OWNER EXECUTIVE BANNER -->
+    <div th:if="${currentUser.isOwner()}" class="glass-card" style="border-left: 4px solid var(--accent-orange); margin-bottom: 2.5rem; background: linear-gradient(135deg, rgba(249, 115, 22, 0.1) 0%, rgba(14, 25, 52, 0.75) 100%);">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.25rem;">
+        <div>
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+            <span class="badge badge-owner">Owner Governance & Financial Administration</span>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Ultimate Authority Active</span>
+          </div>
+          <h3 style="color: var(--text-white); margin-bottom: 0.25rem;">SamakiAfrica Platform Owner Executive Suite</h3>
+          <p style="margin: 0; font-size: 0.9rem; color: var(--text-secondary);">
+            Manage subscription packages, commissions, platform fees, administrator accounts, active sessions, and security audits.
+          </p>
+        </div>
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+          <a th:href="@{/admin/financial-control}" class="btn btn-orange">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            Financial Control Centre
+          </a>
+          <a th:href="@{/admin/security}" class="btn btn-blue">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            Security & Access Control
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- SYSTEM DEVELOPER TECHNICAL BANNER -->
+    <div th:if="${currentUser.isSystemDeveloper()}" class="glass-card" style="border-left: 4px solid var(--accent-cyan); margin-bottom: 2.5rem; background: linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(14, 25, 52, 0.75) 100%);">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.25rem;">
+        <div>
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+            <span class="badge badge-dev">System Developer Console</span>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Technical Diagnostics & Monitoring</span>
+          </div>
+          <h3 style="color: var(--text-white); margin-bottom: 0.25rem;">SamakiAfrica Developer Diagnostics & Security</h3>
+          <p style="margin: 0; font-size: 0.9rem; color: var(--text-secondary);">
+            Inspect active login sessions, revoke unauthorized device access, initiate user password resets, and audit security events.
+          </p>
+        </div>
+        <a th:href="@{/admin/security}" class="btn btn-blue">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Open Security Centre &rarr;
+        </a>
+      </div>
+    </div>
+
+    <!-- SELLER (FISHER) DASHBOARD SECTION -->
+    <div th:if="${isSeller}">
+
+      <!-- Stats Grid -->
+      <div class="dashboard-stats-grid">
+        <div class="stat-box">
+          <div class="stat-num highlight" th:text="${activeCatches}">3</div>
+          <div class="stat-label">Active Listed Catches</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num" th:text="${#numbers.formatDecimal(totalWeightKg, 0, 'COMMA', 1, 'POINT') + ' kg'}">1,250 kg</div>
+          <div class="stat-label">Total Catch Harvest Volume</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num highlight">4.9 &#9733;</div>
+          <div class="stat-label">Fisher Dock Rating</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num">Verified</div>
+          <div class="stat-label">Direct Trade Status</div>
+        </div>
+      </div>
+
+      <!-- Seller Quick Navigation -->
+      <div style="display: flex; gap: 1rem; margin-bottom: 2rem;">
+        <a th:href="@{/listings/new}" class="btn btn-orange">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          Post New Catch
+        </a>
+        <a th:href="@{/my-listings}" class="btn btn-blue">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+          Full Management View
+        </a>
+      </div>
+
+      <!-- Seller Catch Inventory -->
+      <div class="glass-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+          <div>
+            <h3>Your Recent Catches</h3>
+            <p>Direct live inventory on the marketplace</p>
+          </div>
+          <a th:href="@{/listings/new}" class="btn btn-orange btn-sm">+ Post Catch</a>
+        </div>
+
+        <div th:if="${#lists.isEmpty(myListings)}" style="text-align: center; padding: 3rem 1rem;">
+          <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🎣</div>
+          <h4>No catches posted yet</h4>
+          <p style="margin: 0.5rem 0 1.5rem;">List your first harvest to connect with restaurants and wholesalers.</p>
+          <a th:href="@{/listings/new}" class="btn btn-orange">Post Your First Catch</a>
+        </div>
+
+        <div th:if="${!#lists.isEmpty(myListings)}" class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Catch / Species</th>
+                <th>Quantity</th>
+                <th>Price / Kg</th>
+                <th>Landing Site</th>
+                <th>Status</th>
+                <th style="text-align: right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr th:each="l : ${myListings}">
+                <td>
+                  <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <img th:src="${l.getEffectiveImageUrl()}" th:alt="${l.fishType}" style="width: 44px; height: 44px; border-radius: 8px; object-fit: cover;">
+                    <div>
+                      <b style="color: var(--text-white);" th:text="${l.fishType}">Tilapia</b>
+                      <div style="font-size: 0.75rem; color: var(--text-muted);" th:text="${l.quality}">Fresh</div>
+                    </div>
+                  </div>
+                </td>
+                <td><b th:text="${l.quantityKg + ' kg'}">450 kg</b></td>
+                <td><span style="color: var(--accent-orange); font-weight: 700;" th:text="${l.pricePerKg + ' ' + l.currency}">380 KES</span></td>
+                <td th:text="${l.landingSite != null ? l.landingSite : l.fishingGround}">Mbita Pier</td>
+                <td>
+                  <!-- Quick status changer -->
+                  <form th:action="@{/listings/{id}/status(id=${l.id})}" method="post" style="display:inline;">
+                    <select name="status" onchange="this.form.submit()" class="form-select" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; width: auto; display: inline-block;">
+                      <option th:each="s : ${statuses}" th:value="${s}" th:text="${s}" th:selected="${s == l.status}"></option>
+                    </select>
+                  </form>
+                </td>
+                <td style="text-align: right;">
+                  <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+                    <a th:href="@{/listings/{id}(id=${l.id})}" class="btn btn-glass btn-sm" title="View Public Page">View</a>
+                    <a th:href="@{/listings/{id}/edit(id=${l.id})}" class="btn btn-blue btn-sm" title="Edit Catch">Edit</a>
+                    <form th:action="@{/listings/{id}/delete(id=${l.id})}" method="post" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this catch?');">
+                      <button type="submit" class="btn btn-danger btn-sm" title="Delete Catch">Delete</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- BUYER / LOGISTICS DASHBOARD SECTION -->
+    <div th:if="${!isSeller}">
+
+      <!-- Stats Grid -->
+      <div class="dashboard-stats-grid">
+        <div class="stat-box">
+          <div class="stat-num highlight" th:text="${availableCatches.size()}">6</div>
+          <div class="stat-label">Live Catches Ready Near You</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num">84+</div>
+          <div class="stat-label">Active Landing Sites</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num highlight">Direct</div>
+          <div class="stat-label">No Broker Markup</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num">Active</div>
+          <div class="stat-label">Buyer Verification Status</div>
+        </div>
+      </div>
+
+      <!-- Quick Procurement Shortcuts -->
+      <div class="glass-card" style="margin-bottom: 2rem;">
+        <h3 style="margin-bottom: 1rem;">Quick Procurement by Species</h3>
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+          <a th:href="@{/listings(fishType='Tilapia')}" class="btn btn-glass">
+            🐟 Fresh Lake Tilapia
+          </a>
+          <a th:href="@{/listings(fishType='Perch')}" class="btn btn-glass">
+            🐟 Jumbo Nile Perch
+          </a>
+          <a th:href="@{/listings(fishType='Snapper')}" class="btn btn-glass">
+            🐟 Indian Ocean Red Snapper
+          </a>
+          <a th:href="@{/listings(fishType='Catfish')}" class="btn btn-glass">
+            🐟 African Catfish (Kamongo)
+          </a>
+          <a th:href="@{/listings(fishType='Omena')}" class="btn btn-glass">
+            🐟 Sun-Dried Omena / Dagaa
+          </a>
+          <a th:href="@{/listings(fishType='Tuna')}" class="btn btn-glass">
+            🐟 Yellowfin Tuna Steaks
+          </a>
+        </div>
+      </div>
+
+      <!-- Available Catches Feed -->
+      <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.5rem;">
+        <div>
+          <h3>Available Fresh Catches Recommended For You</h3>
+          <p>Harvested today by verified artisanal fishers</p>
+        </div>
+        <a th:href="@{/listings}" class="btn btn-blue btn-sm">Explore All Catches</a>
+      </div>
+
+      <div class="grid grid-3">
+        <div class="fish-card" th:each="c : ${availableCatches}">
+          <div class="fish-card-media">
+            <img th:src="${c.getEffectiveImageUrl()}" th:alt="${c.fishType}" class="fish-card-img">
+            <div class="fish-card-overlay"></div>
+            <div class="fish-badge-status">
+              <span class="badge" th:classappend="${c.getStatusBadgeClass()}" th:text="${c.getStatusLabel()}">Ready</span>
+            </div>
+            <div class="fish-badge-quality" th:text="${c.quality}">Fresh</div>
+          </div>
+          <div class="fish-card-body">
+            <h4 class="fish-card-title" th:text="${c.fishType}">Tilapia</h4>
+            <div class="fish-card-location" th:text="${c.landingSite != null ? c.landingSite + ', ' + c.country : c.fishingGround}">Mbita, Kenya</div>
+            <div class="fish-specs-grid">
+              <div class="spec-item">
+                <span class="spec-label">Weight</span>
+                <span class="spec-value" th:text="${c.quantityKg + ' kg'}">450 kg</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label">Fisher</span>
+                <span class="spec-value" th:text="${c.fisher.fullName}">Fisher</span>
+              </div>
+            </div>
+            <div class="fish-card-footer">
+              <div class="fish-price-wrap">
+                <span class="price-label">Price / Kg</span>
+                <div class="price-val" th:text="${c.pricePerKg + ' ' + c.currency}">380 KES</div>
+              </div>
+              <a th:href="@{/listings/{id}(id=${c.id})}" class="btn btn-orange btn-sm">Procure Batch</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-bottom" style="border-top: 0; padding-top: 0;">
+        <div>&copy; 2026 SamakiAfrica Technologies Ltd.</div>
+        <div style="display: flex; gap: 1.5rem;">
+          <a th:href="@{/listings}">Marketplace</a>
+          <a th:href="@{/}">Home</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

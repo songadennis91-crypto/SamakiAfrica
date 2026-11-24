@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Account – SamakiAfrica Pan-African Fish Marketplace</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="container nav-container">
+      <a th:href="@{/}" class="brand-logo">
+        <div class="brand-icon-wrap">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6.5 12c.94-3.46 4.94-6 8.5-6 3.56 0 6.06 2.54 7 6-.94 3.46-3.44 6-7 6s-7.56-2.54-8.5-6Z"/>
+            <path d="M18 12v.5"/>
+            <path d="M16 17.93a9.77 9.77 0 0 1 0-11.86"/>
+            <path d="M7 10.67C7 8 5.58 5.97 2.73 4 3.73 7 4 9 4 12s-.27 5-1.27 8C5.58 18.03 7 16 7 13.33v-2.66Z"/>
+          </svg>
+        </div>
+        <span>Samaki<span class="text-gradient-orange">Africa</span></span>
+        <span class="brand-badge">Join Network</span>
+      </a>
+
+      <div class="nav-actions">
+        <a th:href="@{/listings}" class="btn btn-glass btn-sm">Explore Fish</a>
+        <a th:href="@{/login}" class="btn btn-blue btn-sm">Log in</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Auth Layout -->
+  <main class="auth-wrapper">
+    <div class="auth-card" style="max-width: 540px;">
+      <div class="auth-header">
+        <div style="font-size: 2.75rem; margin-bottom: 0.5rem;">🌊</div>
+        <h2>Join Africa's Fish Network</h2>
+        <p>Connect with artisanal fishers and commercial buyers across 54 African countries</p>
+      </div>
+
+      <!-- Error Alert -->
+      <div class="auth-alert error" th:if="${error}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+        <span th:text="${error}">An error occurred during registration.</span>
+      </div>
+
+      <!-- Registration Form -->
+      <form th:action="@{/signup}" th:object="${user}" method="post">
+        
+        <div class="form-group">
+          <label class="form-label">I am joining as a <span class="req">*</span></label>
+          <select th:field="*{role}" class="form-select" required>
+            <option value="FISHER">Fisher / Cooperative (I harvest and sell fish)</option>
+            <option value="BUYER">Wholesale Buyer / Restaurant / Hotel (I buy fish)</option>
+            <option value="RIDER">Logistics Rider / Cold-Chain Driver (I deliver)</option>
+          </select>
+          <div class="form-helper">Fishers gain immediate tools to post catches; buyers gain direct batch procurement.</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Full Name or Cooperative / Business Name <span class="req">*</span></label>
+          <input type="text" th:field="*{fullName}" class="form-input" placeholder="e.g. Captain Juma Omondi or Lakeview Bistro" required>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Phone (WhatsApp) <span class="req">*</span></label>
+            <input type="text" th:field="*{phone}" class="form-input" placeholder="+254 712 345 678" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">African Country <span class="req">*</span></label>
+            <select th:field="*{country}" class="form-select" required>
+              <option th:each="c : ${africanCountries}" th:value="${c.name}" th:text="${c.flag + ' ' + c.name + ' (' + c.region + ')'}"></option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Email Address <span class="req">*</span></label>
+          <input type="email" th:field="*{email}" class="form-input" placeholder="e.g. juma@samaki.africa" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Create Password <span class="req">*</span></label>
+          <input type="password" th:field="*{password}" minlength="6" class="form-input" placeholder="Minimum 6 characters" required>
+        </div>
+
+        <button type="submit" class="btn btn-orange btn-block btn-lg" style="margin-top: 1.5rem;">
+          Complete Registration & Enter
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </button>
+      </form>
+
+      <div class="auth-footer">
+        Already registered on SamakiAfrica? 
+        <a th:href="@{/login}" style="font-weight: 600; color: var(--accent-cyan);">Sign in here</a>
+      </div>
+    </div>
+  </main>
+
+</body>
+</html>

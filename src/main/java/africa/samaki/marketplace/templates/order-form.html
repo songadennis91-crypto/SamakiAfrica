@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Place order - SamakiAfrica</title>
+<link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<main class="container-narrow" style="padding: 3rem 1.5rem 5rem;">
+  <div class="glass-card glass-glow-subtle">
+    <h2>Order fish</h2>
+    <p><b th:text="${listing.fishType}"></b> (<span th:text="${listing.quality}"></span>)</p>
+    <p><span th:text="${listing.pricePerKg} + ' ' + ${listing.currency}"></span> per kg, <span th:text="${listing.quantityKg}"></span> kg available</p>
+    <p th:text="${listing.fishingGround} + ', ' + ${listing.country}"></p>
+    <p style="color:#ff6b6b" th:if="${error}" th:text="${error}"></p>
+    <form th:action="@{/listings/{id}/order(id=${listing.id})}" method="post">
+      <div class="form-group">
+        <label class="form-label">Quantity (kg)</label>
+        <input class="form-input" type="number" step="0.1" min="0.1" name="quantityKg" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label"><input type="checkbox" name="deliveryRequired" value="true"> I need delivery by a rider</label>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Delivery address (if delivery needed)</label>
+        <input class="form-input" type="text" name="deliveryAddress">
+      </div>
+      <button type="submit" class="btn btn-blue">Place order</button>
+    </form>
+    <a class="btn btn-glass" th:href="@{/listings}">Back</a>
+  </div>
+</main>
+</body>
+</html>

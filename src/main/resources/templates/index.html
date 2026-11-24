@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SamakiAfrica – Pan-African B2B Fish Marketplace</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+  <link rel="manifest" th:href="@{/manifest.webmanifest}">
+  <meta name="theme-color" content="#0ea5e9">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="container nav-container">
+      <a th:href="@{/}" class="brand-logo">
+        <div class="brand-icon-wrap">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6.5 12c.94-3.46 4.94-6 8.5-6 3.56 0 6.06 2.54 7 6-.94 3.46-3.44 6-7 6s-7.56-2.54-8.5-6Z"/>
+            <path d="M18 12v.5"/>
+            <path d="M16 17.93a9.77 9.77 0 0 1 0-11.86"/>
+            <path d="M7 10.67C7 8 5.58 5.97 2.73 4 3.73 7 4 9 4 12s-.27 5-1.27 8C5.58 18.03 7 16 7 13.33v-2.66Z"/>
+          </svg>
+        </div>
+        <span>Samaki<span class="text-gradient-orange">Africa</span></span>
+        <span class="brand-badge">Pan-African Network</span>
+      </a>
+
+      <ul class="nav-links">
+        <li><a th:href="@{/listings}" class="nav-link">Marketplace</a></li>
+        <li><a th:href="@{/listings?quality=Fresh}" class="nav-link">Fresh Catch</a></li>
+        <li><a th:href="@{/listings?status=READY}" class="nav-link">Ready for Pickup</a></li>
+        <li><a href="#african-basins" class="nav-link">Fishing Grounds</a></li>
+        <li><a href="#how-it-works" class="nav-link">How It Works</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <!-- Logged in state -->
+        <th:block th:if="${currentUser != null}">
+          <div class="user-pill">
+            <span class="user-avatar" th:text="${#strings.substring(currentUser.fullName,0,1)}">U</span>
+            <span th:text="${currentUser.fullName}">Dennis</span>
+            <span class="badge badge-role" th:text="${currentUser.role}">FISHER</span>
+          </div>
+          <a th:if="${currentUser.role.name() == 'FISHER'}" th:href="@{/listings/new}" class="btn btn-orange btn-sm">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            Post Catch
+          </a>
+          <a th:href="@{/dashboard}" class="btn btn-blue btn-sm">Dashboard</a>
+          <form th:action="@{/logout}" method="post" style="display:inline;">
+            <button type="submit" class="btn btn-glass btn-sm">Logout</button>
+          </form>
+        </th:block>
+
+        <!-- Guest state -->
+        <th:block th:if="${currentUser == null}">
+          <a th:href="@{/login}" class="btn btn-glass btn-sm">Log in</a>
+          <a th:href="@{/signup}" class="btn btn-orange btn-sm">Join Marketplace</a>
+        </th:block>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <header class="hero-section">
+    <div class="container">
+      <div class="hero-pill">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        <span>Live Seafood & Artisanal Fisheries Network Across 54 African Nations</span>
+      </div>
+
+      <h1 class="hero-title">
+        Fresh Fish From Africa's Lakes & Coasts, <br>
+        <span class="text-gradient-orange">Straight From Fisher</span> to <span class="text-gradient-blue">Buyer.</span>
+      </h1>
+
+      <p class="hero-subtitle">
+        Connecting artisanal fleets, coastal trawlers, and lake cooperatives across Lake Victoria, Indian Ocean, Gulf of Guinea, Lake Tanganyika, Benguela Coast, and the Mediterranean with commercial wholesale buyers.
+      </p>
+
+      <div class="hero-cta-group">
+        <a th:href="@{/listings}" class="btn btn-orange btn-lg">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          Explore Pan-African Marketplace
+        </a>
+        <a th:href="@{/listings/new}" class="btn btn-blue btn-lg">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+          Post a Catch (Fishers)
+        </a>
+      </div>
+
+      <!-- Hero Inline Search -->
+      <div class="container-narrow">
+        <div class="filter-card glass-glow-subtle" style="text-align: left;">
+          <form th:action="@{/listings}" method="get" class="filter-grid" style="grid-template-columns: 2fr 1.5fr 1.5fr auto;">
+            <div class="filter-group">
+              <label class="filter-label">Search Specie or Landing Pier</label>
+              <input type="text" name="q" class="form-input" placeholder="e.g. Tilapia, Nile Perch, Tiger Prawns, Mbita, Dakar...">
+            </div>
+            <div class="filter-group">
+              <label class="filter-label">Country</label>
+              <select name="country" class="form-select">
+                <option value="ALL">All African Countries</option>
+                <option th:each="c : ${africanCountries}" th:value="${c.name}" th:text="${c.flag + ' ' + c.name}"></option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label class="filter-label">Fishing Ground</label>
+              <select name="fishingGround" class="form-select">
+                <option value="ALL">All Waters</option>
+                <option th:each="b : ${majorBasins}" th:value="${b}" th:text="${b}"></option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <button type="submit" class="btn btn-orange" style="height: 48px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                Find Fish
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Stats Strip -->
+      <div class="stats-strip">
+        <div class="stat-box">
+          <div class="stat-num highlight">54 Nations</div>
+          <div class="stat-label">Pan-African Coverage</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num">120+</div>
+          <div class="stat-label">Verified Landing Sites</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num highlight">12 Major Basins</div>
+          <div class="stat-label">Lakes · Rivers · Oceans</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num">0%</div>
+          <div class="stat-label">Middleman Exploitation</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Live Marketplace Catches -->
+  <section class="container" style="padding: 4rem 1.5rem;">
+    <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 2.5rem; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <div class="badge badge-caught" style="margin-bottom: 0.5rem;">Live Fleet Feed</div>
+        <h2>Fresh Catches Available Now Across Africa</h2>
+        <p>Harvested today by verified artisanal fishers, cooperatives, and commercial fleets</p>
+      </div>
+      <a th:href="@{/listings}" class="btn btn-glass">
+        View All Marketplace Catches
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+      </a>
+    </div>
+
+    <!-- Listings Grid -->
+    <div class="grid grid-3">
+      <div class="fish-card" th:each="l : ${recentListings}">
+        <div class="fish-card-media">
+          <img th:src="${l.getEffectiveImageUrl()}" th:alt="${l.fishType}" class="fish-card-img">
+          <div class="fish-card-overlay"></div>
+          <div class="fish-badge-status">
+            <span class="badge" th:classappend="${l.getStatusBadgeClass()}" th:text="${l.getStatusLabel()}">Ready</span>
+          </div>
+          <div class="fish-badge-quality" th:text="${l.quality != null ? l.quality : 'Fresh'}">Fresh</div>
+        </div>
+
+        <div class="fish-card-body">
+          <h3 class="fish-card-title" th:text="${l.fishType}">Nile Tilapia</h3>
+          <div class="fish-card-location">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+            <span th:text="${(l.landingSite != null ? l.landingSite + ' · ' : '') + l.fishingGround + ' · ' + l.country}">Mbita, Lake Victoria · Kenya</span>
+          </div>
+
+          <div class="fish-specs-grid">
+            <div class="spec-item">
+              <span class="spec-label">Available Batch</span>
+              <span class="spec-value" th:text="${l.quantityKg + ' kg'}">450 kg</span>
+            </div>
+            <div class="spec-item">
+              <span class="spec-label">Grading</span>
+              <span class="spec-value" th:text="${l.fishPerKg != null ? l.fishPerKg + ' pcs/kg' : 'Graded'}">2 pcs/kg</span>
+            </div>
+            <div class="spec-item">
+              <span class="spec-label">Fishing Ground</span>
+              <span class="spec-value" th:text="${l.fishingGround}">Lake Victoria</span>
+            </div>
+            <div class="spec-item">
+              <span class="spec-label">Fisher</span>
+              <span class="spec-value" th:text="${l.fisher.fullName}">Capt. Juma</span>
+            </div>
+          </div>
+
+          <div class="fish-card-footer">
+            <div class="fish-price-wrap">
+              <span class="price-label">Price per Kg</span>
+              <div class="price-val">
+                <span th:text="${l.pricePerKg}">380</span>
+                <span class="price-unit" th:text="${l.currency + '/kg'}">KES/kg</span>
+              </div>
+            </div>
+            <a th:href="@{/listings/{id}(id=${l.id})}" class="btn btn-orange btn-sm">
+              View & Procure
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pan-African Fishing Grounds & Basins Section -->
+  <section id="african-basins" class="container" style="padding: 4rem 1.5rem;">
+    <div style="text-align: center; max-width: 720px; margin: 0 auto 3.5rem;">
+      <div class="badge badge-ready" style="margin-bottom: 0.5rem;">Pan-African Marine & Freshwater Directory</div>
+      <h2>Africa's Major Fishing Grounds</h2>
+      <p>From the Great Lakes of the Rift Valley to the Atlantic upwelling currents and the coral reefs of the Indian Ocean, trade directly with certified fishers in every basin.</p>
+    </div>
+
+    <div class="grid grid-3">
+      <!-- 1. Lake Victoria -->
+      <div class="glass-card glass-glow-subtle">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+          <h3 style="color: var(--accent-cyan);">Lake Victoria Basin</h3>
+          <span class="badge badge-caught">East Africa</span>
+        </div>
+        <p style="font-size: 0.875rem; margin-bottom: 1rem;">Shared by Kenya, Uganda, and Tanzania. The continent's freshwater powerhouse providing high-volume Nile Perch, Tilapia, and Omena.</p>
+        <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+          <b>Key Ports:</b> Mbita, Dunga (Kisumu), Mwanza, Ggaba, Jinja, Kasenyi
+        </div>
+        <a th:href="@{/listings(fishingGround='Lake Victoria')}" class="btn btn-glass btn-sm btn-block">Explore Lake Victoria Catches &rarr;</a>
+      </div>
+
+      <!-- 2. Western Indian Ocean -->
+      <div class="glass-card glass-glow-subtle">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+          <h3 style="color: var(--accent-orange);">Western Indian Ocean</h3>
+          <span class="badge badge-caught">East & Southern</span>
+        </div>
+        <p style="font-size: 0.875rem; margin-bottom: 1rem;">Kenya, Tanzania, Mozambique, Madagascar, Somalia, Seychelles, and Mauritius. Pristine coral drop-offs rich in Yellowfin Tuna, Snapper, and Lobster.</p>
+        <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+          <b>Key Ports:</b> Malindi, Mombasa, Dar es Salaam, Maputo, Victoria (Seychelles)
+        </div>
+        <a th:href="@{/listings(fishingGround='Indian Ocean')}" class="btn btn-glass btn-sm btn-block">Explore Indian Ocean Catches &rarr;</a>
+      </div>
+
+      <!-- 3. Gulf of Guinea (Atlantic) -->
+      <div class="glass-card glass-glow-subtle">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+          <h3 style="color: var(--text-emerald);">Gulf of Guinea (Atlantic)</h3>
+          <span class="badge badge-caught">West Africa</span>
+        </div>
+        <p style="font-size: 0.875rem; margin-bottom: 1rem;">Nigeria, Ghana, Côte d'Ivoire, Cameroon, Benin, Togo. Commercial coastal trawl fisheries renowned for Giant Tiger Prawns, Croaker, and Sardinella.</p>
+        <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+          <b>Key Ports:</b> Victoria Island (Lagos), Tema, Abidjan, Douala, Cotonou
+        </div>
+        <a th:href="@{/listings(fishingGround='Gulf of Guinea')}" class="btn btn-glass btn-sm btn-block">Explore Gulf of Guinea Catches &rarr;</a>
+      </div>
+
+      <!-- 4. Lake Tanganyika -->
+      <div class="glass-card glass-glow-subtle">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+          <h3 style="color: var(--accent-cyan);">Lake Tanganyika Basin</h3>
+          <span class="badge badge-caught">Central & East</span>
+        </div>
+        <p style="font-size: 0.875rem; margin-bottom: 1rem;">Tanzania, DR Congo, Burundi, and Zambia. Earth's second deepest lake, world-famous for endemic freshwater sardines (Kapenta / Ndakala / Mukeke).</p>
+        <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+          <b>Key Ports:</b> Kigoma, Kalemie, Bujumbura, Rumonge, Mpulungu
+        </div>
+        <a th:href="@{/listings(fishingGround='Lake Tanganyika')}" class="btn btn-glass btn-sm btn-block">Explore Lake Tanganyika Catches &rarr;</a>
+      </div>
+
+      <!-- 5. Benguela Current System -->
+      <div class="glass-card glass-glow-subtle">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+          <h3 style="color: var(--accent-orange);">Benguela Upwelling (Atlantic)</h3>
+          <span class="badge badge-caught">Southern Africa</span>
+        </div>
+        <p style="font-size: 0.875rem; margin-bottom: 1rem;">South Africa, Namibia, and Angola. One of the planet's richest cold-water marine ecosystems producing deep-sea Cape Hake, Monkfish, and Kingklip.</p>
+        <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+          <b>Key Ports:</b> Cape Town, Walvis Bay, Hout Bay, Lüderitz, Luanda, Lobito
+        </div>
+        <a th:href="@{/listings(fishingGround='Benguela')}" class="btn btn-glass btn-sm btn-block">Explore Benguela Catches &rarr;</a>
+      </div>
+
+      <!-- 6. Mediterranean & Red Sea -->
+      <div class="glass-card glass-glow-subtle">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+          <h3 style="color: var(--text-emerald);">Mediterranean & Red Sea</h3>
+          <span class="badge badge-caught">North Africa</span>
+        </div>
+        <p style="font-size: 0.875rem; margin-bottom: 1rem;">Egypt, Morocco, Tunisia, Algeria, Sudan, and Eritrea. Premium European Sea Bass, Sea Bream, Bluefin Tuna, Red Sea Grouper, and Moroccan Sardines.</p>
+        <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+          <b>Key Ports:</b> Alexandria, Agadir, Casablanca, Sfax, Port Sudan, Algiers
+        </div>
+        <a th:href="@{/listings(fishingGround='Mediterranean')}" class="btn btn-glass btn-sm btn-block">Explore Mediterranean & Red Sea Catches &rarr;</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works Section -->
+  <section id="how-it-works" class="container" style="padding: 4rem 1.5rem;">
+    <div style="text-align: center; max-width: 680px; margin: 0 auto 3.5rem;">
+      <div class="badge badge-caught" style="margin-bottom: 0.5rem;">Seamless Platform Flow</div>
+      <h2>How SamakiAfrica Works</h2>
+      <p>A digitized supply chain empowering artisanal fishers across 54 African countries while guaranteeing peak freshness for commercial hospitality and wholesale buyers.</p>
+    </div>
+
+    <div class="grid grid-3">
+      <div class="glass-card glass-glow-subtle">
+        <div style="width: 52px; height: 52px; border-radius: 14px; background: rgba(249, 115, 22, 0.15); border: 1px solid rgba(249, 115, 22, 0.35); display: flex; align-items: center; justify-content: center; color: var(--accent-orange); margin-bottom: 1.25rem;">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
+        <h3 style="margin-bottom: 0.6rem;">1. Fishers Post Catch</h3>
+        <p>Fishers list their catch either while heading out to water, upon net hauling, or upon docking with verified kg, species, country, and price.</p>
+      </div>
+
+      <div class="glass-card glass-glow-subtle">
+        <div style="width: 52px; height: 52px; border-radius: 14px; background: rgba(14, 165, 233, 0.15); border: 1px solid rgba(14, 165, 233, 0.35); display: flex; align-items: center; justify-content: center; color: var(--accent-cyan); margin-bottom: 1.25rem;">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        </div>
+        <h3 style="margin-bottom: 0.6rem;">2. Buyers Match & Order</h3>
+        <p>Hotels, restaurants, and wholesalers browse live catches by country or water basin, negotiate direct, and place batch procurement orders.</p>
+      </div>
+
+      <div class="glass-card glass-glow-subtle">
+        <div style="width: 52px; height: 52px; border-radius: 14px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); display: flex; align-items: center; justify-content: center; color: var(--accent-emerald); margin-bottom: 1.25rem;">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+        </div>
+        <h3 style="margin-bottom: 0.6rem;">3. Cold-Chain Fulfillment</h3>
+        <p>Batches are collected in insulated ice containers or dispatched via refrigerated transit straight to destination cold rooms with verified provenance.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Box -->
+  <section class="container" style="padding: 2rem 1.5rem 5rem;">
+    <div class="glass-card" style="background: linear-gradient(135deg, rgba(14, 28, 62, 0.9) 0%, rgba(20, 42, 90, 0.85) 100%); border: 1px solid rgba(56, 189, 248, 0.3); padding: 3.5rem 2rem; text-align: center;">
+      <h2 style="font-size: 2.2rem; margin-bottom: 1rem;">Ready to Trade Seafood Across Africa?</h2>
+      <p style="max-width: 600px; margin: 0 auto 2rem; font-size: 1.05rem;">
+        Join thousands of verified artisanal fishers, trawler fleets, and commercial wholesale buyers active across Africa on SamakiAfrica today.
+      </p>
+      <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+        <a th:href="@{/signup}" class="btn btn-orange btn-lg">Create Free Account</a>
+        <a th:href="@{/listings}" class="btn btn-glass btn-lg">Browse Pan-African Marketplace</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-col">
+          <div class="brand-logo" style="margin-bottom: 1rem;">
+            <div class="brand-icon-wrap">🐟</div>
+            <span>Samaki<span class="text-gradient-orange">Africa</span></span>
+          </div>
+          <p style="font-size: 0.9rem; line-height: 1.6; margin-bottom: 1.5rem;">
+            Africa's premiere technological seafood network. Digitizing artisanal fisheries and cold-chain distribution across all 54 African countries and major inland and oceanic water basins.
+          </p>
+          <div style="display: flex; gap: 0.75rem;">
+            <span class="badge badge-ready">54 African Countries</span>
+            <span class="badge badge-caught">Cold-Chain Monitored</span>
+          </div>
+        </div>
+
+        <div class="footer-col">
+          <h4>Key Basins</h4>
+          <ul class="footer-links">
+            <li><a th:href="@{/listings?fishingGround=Victoria}">Lake Victoria</a></li>
+            <li><a th:href="@{/listings?fishingGround=Indian}">Western Indian Ocean</a></li>
+            <li><a th:href="@{/listings?fishingGround=Guinea}">Gulf of Guinea (Atlantic)</a></li>
+            <li><a th:href="@{/listings?fishingGround=Tanganyika}">Lake Tanganyika</a></li>
+            <li><a th:href="@{/listings?fishingGround=Benguela}">Benguela Current</a></li>
+            <li><a th:href="@{/listings?fishingGround=Mediterranean}">Mediterranean Sea</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Regions</h4>
+          <ul class="footer-links">
+            <li><a th:href="@{/listings?country=Kenya}">East Africa (Kenya, Tanzania, Uganda...)</a></li>
+            <li><a th:href="@{/listings?country=Nigeria}">West Africa (Nigeria, Ghana, Senegal...)</a></li>
+            <li><a th:href="@{/listings?country=South%20Africa}">Southern Africa (South Africa, Namibia...)</a></li>
+            <li><a th:href="@{/listings?country=Egypt}">North Africa (Egypt, Morocco, Tunisia...)</a></li>
+            <li><a th:href="@{/listings?country=Democratic%20Republic%20of%20Congo}">Central Africa (DR Congo, Gabon...)</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Platform & Account</h4>
+          <ul class="footer-links">
+            <li><a th:href="@{/login}">Sign In</a></li>
+            <li><a th:href="@{/signup}">Join as Fisher / Seller</a></li>
+            <li><a th:href="@{/signup}">Join as Wholesale Buyer</a></li>
+            <li><a th:href="@{/dashboard}">Member Dashboard</a></li>
+            <li><a th:href="@{/listings/new}">Post a Catch</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>&copy; 2026 SamakiAfrica Technologies Ltd. Pan-African Fish Network. All rights reserved.</div>
+        <div style="display: flex; gap: 1.5rem;">
+          <a href="#">Privacy Policy</a>
+          <a href="#">Terms of Pan-African Trade</a>
+          <a href="#">Cold-Chain Protocol</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+  <script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js');
+  }
+</script>
+</body>
+</html>

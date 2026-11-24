@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pan-African Fish Marketplace – SamakiAfrica</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="container nav-container">
+      <a th:href="@{/}" class="brand-logo">
+        <div class="brand-icon-wrap">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6.5 12c.94-3.46 4.94-6 8.5-6 3.56 0 6.06 2.54 7 6-.94 3.46-3.44 6-7 6s-7.56-2.54-8.5-6Z"/>
+            <path d="M18 12v.5"/>
+            <path d="M16 17.93a9.77 9.77 0 0 1 0-11.86"/>
+            <path d="M7 10.67C7 8 5.58 5.97 2.73 4 3.73 7 4 9 4 12s-.27 5-1.27 8C5.58 18.03 7 16 7 13.33v-2.66Z"/>
+          </svg>
+        </div>
+        <span>Samaki<span class="text-gradient-orange">Africa</span></span>
+        <span class="brand-badge">Pan-African Fleet</span>
+      </a>
+
+      <ul class="nav-links">
+        <li><a th:href="@{/listings}" class="nav-link active">All Fish</a></li>
+        <li><a th:href="@{/listings?quality=Fresh}" class="nav-link">Fresh Catch</a></li>
+        <li><a th:href="@{/listings?status=READY}" class="nav-link">Ready for Pickup</a></li>
+        <li><a th:href="@{/listings?fishingGround=Victoria}" class="nav-link">Lake Victoria</a></li>
+        <li><a th:href="@{/listings?fishingGround=Indian}" class="nav-link">Indian Ocean</a></li>
+        <li><a th:href="@{/listings?fishingGround=Guinea}" class="nav-link">Gulf of Guinea</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <th:block th:if="${currentUser != null}">
+          <div class="user-pill">
+            <span class="user-avatar" th:text="${#strings.substring(currentUser.fullName,0,1)}">U</span>
+            <span th:text="${currentUser.fullName}">User</span>
+          </div>
+          <a th:if="${currentUser.role.name() == 'FISHER'}" th:href="@{/listings/new}" class="btn btn-orange btn-sm">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            Post Catch
+          </a>
+          <a th:href="@{/dashboard}" class="btn btn-blue btn-sm">Dashboard</a>
+          <form th:action="@{/logout}" method="post" style="display:inline;">
+            <button type="submit" class="btn btn-glass btn-sm">Logout</button>
+          </form>
+        </th:block>
+
+        <th:block th:if="${currentUser == null}">
+          <a th:href="@{/login}" class="btn btn-glass btn-sm">Log in</a>
+          <a th:href="@{/signup}" class="btn btn-orange btn-sm">Join Marketplace</a>
+        </th:block>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <main class="container" style="padding: 2.5rem 1.5rem 5rem;">
+
+    <!-- Breadcrumb & Header -->
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.35rem;">
+          <a th:href="@{/}" style="color: var(--text-secondary);">Home</a> / <span style="color: var(--text-cyan);">Pan-African Marketplace</span>
+        </div>
+        <h1>Pan-African Live Fish Marketplace</h1>
+        <p>Procure verified seafood from all African coastal nations, Great Lakes basins, and artisanal river landings.</p>
+      </div>
+      <div>
+        <a th:href="@{/listings/new}" class="btn btn-orange">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          Post a Catch
+        </a>
+      </div>
+    </div>
+
+    <!-- Multi-Criteria Search & Filter Toolbar -->
+    <div class="filter-card">
+      <form th:action="@{/listings}" method="get" class="filter-grid" style="grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto;">
+        
+        <div class="filter-group">
+          <label class="filter-label">Keyword Search</label>
+          <input type="text" name="q" class="form-input" th:value="${q}" placeholder="Species, lake, ocean, pier, country...">
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label">African Country</label>
+          <select name="country" class="form-select">
+            <option value="ALL" th:selected="${selectedCountry == null or selectedCountry == 'ALL'}">All African Countries</option>
+            <option th:each="c : ${africanCountries}" th:value="${c.name}" th:text="${c.flag + ' ' + c.name}" th:selected="${selectedCountry == c.name}"></option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label">Fishing Ground / Basin</label>
+          <select name="fishingGround" class="form-select">
+            <option value="ALL" th:selected="${selectedGround == null or selectedGround == 'ALL'}">All Fishing Grounds</option>
+            <option th:each="b : ${majorBasins}" th:value="${b}" th:text="${b}" th:selected="${selectedGround == b}"></option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label">Quality</label>
+          <select name="quality" class="form-select">
+            <option value="ALL" th:selected="${selectedQuality == null or selectedQuality == 'ALL'}">All Qualities</option>
+            <option value="Fresh" th:selected="${selectedQuality == 'Fresh'}">Fresh</option>
+            <option value="Frozen" th:selected="${selectedQuality == 'Frozen'}">Frozen</option>
+            <option value="Smoked" th:selected="${selectedQuality == 'Smoked'}">Smoked</option>
+            <option value="Dried" th:selected="${selectedQuality == 'Dried'}">Dried</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label">Status</label>
+          <select name="status" class="form-select">
+            <option value="" th:selected="${selectedStatus == null or selectedStatus == ''}">All Statuses</option>
+            <option value="READY" th:selected="${selectedStatus == 'READY'}">Ready for Pickup</option>
+            <option value="CAUGHT" th:selected="${selectedStatus == 'CAUGHT'}">Caught / Landed</option>
+            <option value="GOING_FISHING" th:selected="${selectedStatus == 'GOING_FISHING'}">Going Fishing (Pre-order)</option>
+          </select>
+        </div>
+
+        <div class="filter-group" style="display: flex; gap: 0.5rem;">
+          <button type="submit" class="btn btn-blue" style="height: 48px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            Filter
+          </button>
+          <a th:href="@{/listings}" class="btn btn-glass" style="height: 48px;" title="Reset filters">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+          </a>
+        </div>
+      </form>
+
+      <!-- Pan-African Basin Quick Filter Pills -->
+      <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 1.25rem; flex-wrap: wrap;">
+        <span style="font-size: 0.775rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Major Waters:</span>
+        <a th:href="@{/listings(fishingGround='Lake Victoria')}" class="badge badge-caught">Lake Victoria</a>
+        <a th:href="@{/listings(fishingGround='Indian Ocean')}" class="badge badge-caught">Indian Ocean</a>
+        <a th:href="@{/listings(fishingGround='Gulf of Guinea')}" class="badge badge-caught">Gulf of Guinea (Atlantic)</a>
+        <a th:href="@{/listings(fishingGround='Lake Tanganyika')}" class="badge badge-caught">Lake Tanganyika</a>
+        <a th:href="@{/listings(fishingGround='Benguela')}" class="badge badge-caught">Benguela Current</a>
+        <a th:href="@{/listings(fishingGround='Mediterranean')}" class="badge badge-caught">Mediterranean Sea</a>
+        <a th:href="@{/listings(fishingGround='Red Sea')}" class="badge badge-caught">Red Sea</a>
+        <a th:href="@{/listings(fishingGround='Lake Malawi')}" class="badge badge-caught">Lake Malawi</a>
+        <a th:href="@{/listings}" class="badge badge-ready">Reset Filters</a>
+      </div>
+    </div>
+
+    <!-- Active Results Meta -->
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.75rem;">
+      <p style="font-size: 0.95rem; color: var(--text-secondary);">
+        Found <b style="color: var(--accent-cyan);" th:text="${totalCount}">0</b> verified African batches ready for procurement
+      </p>
+      <div style="display: flex; gap: 0.5rem; align-items: center;">
+        <span style="font-size: 0.8rem; color: var(--text-muted);">Sort by:</span>
+        <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary);">Newest Landings First</span>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div th:if="${#lists.isEmpty(listings)}" class="glass-card" style="text-align: center; padding: 4rem 2rem;">
+      <div style="font-size: 3.5rem; margin-bottom: 1rem;">🐟</div>
+      <h2>No Fish Catches Found for This Region</h2>
+      <p style="max-width: 480px; margin: 0.5rem auto 1.75rem;">
+        No listings match your current filters. Try selecting a different country or basin, or post an open procurement pre-order.
+      </p>
+      <div style="display: flex; justify-content: center; gap: 1rem;">
+        <a th:href="@{/listings}" class="btn btn-blue">Clear All Filters</a>
+        <a th:href="@{/listings/new}" class="btn btn-orange">Post a Catch</a>
+      </div>
+    </div>
+
+    <!-- Listings Grid -->
+    <div th:if="${!#lists.isEmpty(listings)}" class="grid grid-3">
+      <div class="fish-card" th:each="l : ${listings}">
+        <div class="fish-card-media">
+          <img th:src="${l.getEffectiveImageUrl()}" th:alt="${l.fishType}" class="fish-card-img" loading="lazy">
+          <div class="fish-card-overlay"></div>
+          <div class="fish-badge-status">
+            <span class="badge" th:classappend="${l.getStatusBadgeClass()}" th:text="${l.getStatusLabel()}">Ready</span>
+          </div>
+          <div class="fish-badge-quality" th:text="${l.quality != null ? l.quality : 'Fresh'}">Fresh</div>
+        </div>
+
+        <div class="fish-card-body">
+          <h3 class="fish-card-title" th:text="${l.fishType}">Nile Tilapia</h3>
+          <div class="fish-card-location">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+            <span th:text="${(l.landingSite != null ? l.landingSite + ' · ' : '') + l.fishingGround + ' · ' + l.country}">Mbita, Lake Victoria · Kenya</span>
+          </div>
+
+          <div class="fish-specs-grid">
+            <div class="spec-item">
+              <span class="spec-label">Total Batch</span>
+              <span class="spec-value" th:text="${l.quantityKg + ' kg'}">450 kg</span>
+            </div>
+            <div class="spec-item">
+              <span class="spec-label">Grading</span>
+              <span class="spec-value" th:text="${l.fishPerKg != null ? l.fishPerKg + ' pcs/kg' : 'Graded'}">2 pcs/kg</span>
+            </div>
+            <div class="spec-item">
+              <span class="spec-label">Fisher / Fleet</span>
+              <span class="spec-value" th:text="${l.fisher.fullName}">Juma Omondi</span>
+            </div>
+            <div class="spec-item">
+              <span class="spec-label">Total Value</span>
+              <span class="spec-value" style="color: var(--text-cyan);" th:text="${#numbers.formatDecimal(l.getTotalPrice(), 0, 'COMMA', 0, 'POINT') + ' ' + l.currency}">171,000 KES</span>
+            </div>
+          </div>
+
+          <p th:if="${l.description != null}" th:text="${#strings.abbreviate(l.description, 95)}" style="font-size: 0.85rem; line-height: 1.4; margin-bottom: 1.25rem; color: var(--text-secondary);"></p>
+
+          <div class="fish-card-footer">
+            <div class="fish-price-wrap">
+              <span class="price-label">Price per Kg</span>
+              <div class="price-val">
+                <span th:text="${l.pricePerKg}">380</span>
+                <span class="price-unit" th:text="${l.currency + '/kg'}">KES/kg</span>
+              </div>
+            </div>
+            <div style="display: flex; gap: 0.45rem;">
+              <a th:href="@{/listings/{id}(id=${l.id})}" class="btn btn-orange btn-sm">
+                View & Buy
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-bottom" style="border-top: 0; padding-top: 0;">
+        <div>&copy; 2026 SamakiAfrica – African Seafood Marketplace. All rights reserved.</div>
+        <div style="display: flex; gap: 1.5rem;">
+          <a th:href="@{/}">Home</a>
+          <a th:href="@{/listings}">Marketplace</a>
+          <a th:href="@{/dashboard}">Dashboard</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

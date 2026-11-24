@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title th:text="${isEdit ? 'Edit Catch – SamakiAfrica' : 'Post a Catch – SamakiAfrica'}">Post a Catch – SamakiAfrica</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="container nav-container">
+      <a th:href="@{/}" class="brand-logo">
+        <div class="brand-icon-wrap">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6.5 12c.94-3.46 4.94-6 8.5-6 3.56 0 6.06 2.54 7 6-.94 3.46-3.44 6-7 6s-7.56-2.54-8.5-6Z"/>
+            <path d="M18 12v.5"/>
+            <path d="M16 17.93a9.77 9.77 0 0 1 0-11.86"/>
+            <path d="M7 10.67C7 8 5.58 5.97 2.73 4 3.73 7 4 9 4 12s-.27 5-1.27 8C5.58 18.03 7 16 7 13.33v-2.66Z"/>
+          </svg>
+        </div>
+        <span>Samaki<span class="text-gradient-orange">Africa</span></span>
+        <span class="brand-badge" th:text="${isEdit ? 'Update Catch' : 'Pan-African Fleet'}">Pan-African Fleet</span>
+      </a>
+
+      <div class="nav-actions">
+        <a th:href="@{/my-listings}" class="btn btn-glass btn-sm">My Catches</a>
+        <a th:href="@{/dashboard}" class="btn btn-blue btn-sm">Dashboard</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <main class="container-narrow" style="padding: 3rem 1.5rem 5rem;">
+
+    <div style="margin-bottom: 2rem;">
+      <a th:href="@{/my-listings}" style="font-size: 0.85rem; color: var(--text-secondary); display: inline-flex; align-items: center; gap: 0.4rem; margin-bottom: 0.75rem;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        Back to My Catches
+      </a>
+      <h1 th:text="${isEdit ? 'Update Catch Listing' : 'Post a New Catch (All African Basins)'}">Post a New Catch</h1>
+      <p>Log artisanal, cooperative or commercial catches across Africa's lakes, rivers, and coastal oceans.</p>
+    </div>
+
+    <!-- Form Glass Card -->
+    <div class="glass-card glass-glow-subtle">
+      <form th:action="${isEdit ? '/listings/' + listing.id + '/edit' : '/listings'}" th:object="${listing}" method="post">
+
+        <!-- Section 1: Catch & Specie Information -->
+        <h3 style="margin-bottom: 1.25rem; color: var(--text-cyan); display: flex; align-items: center; gap: 0.5rem;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>
+          1. Catch Details & Variety
+        </h3>
+
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Fish Specie / Product Name <span class="req">*</span></label>
+            <input type="text" th:field="*{fishType}" id="fishTypeInput" list="speciesList" class="form-input" placeholder="e.g. Nile Tilapia, Nile Perch, Red Snapper, Kapenta, Tiger Prawns, Thiof..." required>
+            <datalist id="speciesList">
+              <option value="Fresh Lake Victoria Tilapia">
+              <option value="Jumbo Nile Perch Fillet">
+              <option value="Indian Ocean Red Snapper">
+              <option value="Lake Tanganyika Sardines (Kapenta)">
+              <option value="Atlantic Giant Tiger Prawns">
+              <option value="Senegalese Thiof (White Grouper)">
+              <option value="Cape Hake (Merluccius capensis)">
+              <option value="Mediterranean Sea Bass">
+              <option value="African Catfish (Clarias / Kamongo)">
+              <option value="Yellowfin Tuna Steaks">
+              <option value="Sun-Dried Omena / Dagaa">
+              <option value="Lake Malawi Chambo">
+            </datalist>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Harvest Quality <span class="req">*</span></label>
+            <select th:field="*{quality}" class="form-select">
+              <option value="Fresh">Fresh</option>
+              <option value="Frozen">Frozen</option>
+              <option value="Smoked">Smoked</option>
+              <option value="Dried">Dried</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Total Quantity (kg) <span class="req">*</span></label>
+            <input type="number" step="0.1" th:field="*{quantityKg}" id="inputQuantity" class="form-input" placeholder="e.g. 450.0" oninput="calculateTotal()" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Grading (Fish per kg)</label>
+            <input type="number" th:field="*{fishPerKg}" class="form-input" placeholder="e.g. 2 (leave blank if mixed)">
+          </div>
+        </div>
+
+        <!-- Section 2: Pricing & Currency -->
+        <h3 style="margin: 2rem 0 1.25rem; color: var(--text-orange); display: flex; align-items: center; gap: 0.5rem;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+          2. Pricing & Currency
+        </h3>
+
+        <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Price per Kg <span class="req">*</span></label>
+            <input type="number" step="0.01" th:field="*{pricePerKg}" id="inputPrice" class="form-input" placeholder="e.g. 380.00" oninput="calculateTotal()" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Currency <span class="req">*</span></label>
+            <select th:field="*{currency}" id="inputCurrency" class="form-select" onchange="calculateTotal()" required>
+              <option value="KES">KES – Kenyan Shilling</option>
+              <option value="TZS">TZS – Tanzanian Shilling</option>
+              <option value="UGX">UGX – Ugandan Shilling</option>
+              <option value="NGN">NGN – Nigerian Naira</option>
+              <option value="GHS">GHS – Ghanaian Cedi</option>
+              <option value="XOF">XOF – West African CFA</option>
+              <option value="XAF">XAF – Central African CFA</option>
+              <option value="ZAR">ZAR – South African Rand</option>
+              <option value="EGP">EGP – Egyptian Pound</option>
+              <option value="MAD">MAD – Moroccan Dirham</option>
+              <option value="MZN">MZN – Mozambican Metical</option>
+              <option value="USD">USD – US Dollar</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Real-time Calculated Batch Total Box -->
+        <div style="padding: 1rem 1.25rem; background: rgba(8, 15, 32, 0.7); border: 1px solid rgba(249, 115, 22, 0.3); border-radius: var(--radius-md); margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 0.85rem; color: var(--text-secondary);">Calculated Full Batch Gross Value:</span>
+          <span id="calculatedTotal" style="font-size: 1.25rem; font-weight: 800; font-family: 'Outfit', sans-serif; color: var(--accent-orange);">0.00 KES</span>
+        </div>
+
+        <!-- Section 3: Pan-African Country & Fishing Grounds -->
+        <h3 style="margin: 2rem 0 1.25rem; color: var(--text-cyan); display: flex; align-items: center; gap: 0.5rem;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+          3. African Country, Fishing Ground & Landing Pier
+        </h3>
+
+        <!-- Country Select (All African Countries) -->
+        <div class="form-group">
+          <label class="form-label">African Country <span class="req">*</span></label>
+          <select th:field="*{country}" id="countrySelect" class="form-select" onchange="onCountryChange()" required>
+            <option th:each="c : ${africanCountries}" th:value="${c.name}" th:text="${c.flag + ' ' + c.name + ' (' + c.region + ')'}" th:selected="${c.name == listing.country}"></option>
+          </select>
+          <div class="form-helper">Select any country across East, West, North, Southern or Central Africa.</div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Fishing Ground / Water Body <span class="req">*</span></label>
+            <input type="text" th:field="*{fishingGround}" id="fishingGroundInput" list="groundsList" class="form-input" placeholder="Select or type lake, ocean, river..." required>
+            <datalist id="groundsList">
+              <!-- Populated dynamically via JS -->
+            </datalist>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Landing Site / Pier</label>
+            <input type="text" th:field="*{landingSite}" id="landingSiteInput" list="landingSitesList" class="form-input" placeholder="Select or type pier, beach, port...">
+            <datalist id="landingSitesList">
+              <!-- Populated dynamically via JS -->
+            </datalist>
+          </div>
+        </div>
+
+        <!-- Section 4: Status, Media & Logistics -->
+        <h3 style="margin: 2rem 0 1.25rem; color: var(--text-white); display: flex; align-items: center; gap: 0.5rem;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+          4. Current Status & Trade Terms
+        </h3>
+
+        <div class="form-group">
+          <label class="form-label">Harvest / Catch Status <span class="req">*</span></label>
+          <select th:field="*{status}" class="form-select" required>
+            <option value="GOING_FISHING">Going Fishing (Open for Pre-orders)</option>
+            <option value="CAUGHT">Caught (In transit back to dock)</option>
+            <option value="READY">Ready for Pickup (Ice-packed at landing site)</option>
+            <option value="SOLD" th:if="${isEdit}">Sold Out</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Catch Photography Image URL (Optional)</label>
+          <input type="url" th:field="*{imageUrl}" class="form-input" placeholder="https://... (Leave blank to use verified species photograph)">
+          <div class="form-helper">If omitted, an authentic high-resolution species image will be assigned automatically.</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Terms of Trade & Cold Chain Handling</label>
+          <input type="text" th:field="*{terms}" class="form-input" placeholder="e.g. Ice-packed in cooler boxes, dock pickup or cold truck delivery, M-Pesa/Cash on inspection.">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Detailed Description & Harvest Narrative</label>
+          <textarea th:field="*{description}" class="form-textarea" placeholder="Detail the fishing method (gillnet, longline, traditional trap), ice preservation, and minimum purchase quantities..."></textarea>
+        </div>
+
+        <div style="display: flex; gap: 1rem; margin-top: 2.5rem;">
+          <button type="submit" class="btn btn-orange btn-lg" style="flex: 2;" th:text="${isEdit ? 'Save Catch Changes' : 'Publish Catch to Pan-African Marketplace'}">
+            Publish Catch to Pan-African Marketplace
+          </button>
+          <a th:href="@{/my-listings}" class="btn btn-glass btn-lg" style="flex: 1;">Cancel</a>
+        </div>
+
+      </form>
+    </div>
+
+  </main>
+
+  <script>
+    function calculateTotal() {
+      const qty = parseFloat(document.getElementById('inputQuantity').value) || 0;
+      const price = parseFloat(document.getElementById('inputPrice').value) || 0;
+      const curr = document.getElementById('inputCurrency').value || 'KES';
+      const total = qty * price;
+      document.getElementById('calculatedTotal').innerText = total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' ' + curr;
+    }
+
+    async function onCountryChange() {
+      const country = document.getElementById('countrySelect').value;
+      if (!country) return;
+
+      try {
+        const res = await fetch('/api/fisheries/grounds?country=' + encodeURIComponent(country));
+        if (res.ok) {
+          const data = await res.json();
+          
+          // Update grounds datalist
+          const groundsList = document.getElementById('groundsList');
+          groundsList.innerHTML = '';
+          if (data.fishingGrounds) {
+            data.fishingGrounds.forEach(g => {
+              const opt = document.createElement('option');
+              opt.value = g;
+              groundsList.appendChild(opt);
+            });
+            // If field is empty, prefill with first ground
+            const groundInput = document.getElementById('fishingGroundInput');
+            if (!groundInput.value && data.fishingGrounds.length > 0) {
+              groundInput.value = data.fishingGrounds[0];
+            }
+          }
+
+          // Update landing sites datalist
+          const landingSitesList = document.getElementById('landingSitesList');
+          landingSitesList.innerHTML = '';
+          if (data.landingSites) {
+            data.landingSites.forEach(s => {
+              const opt = document.createElement('option');
+              opt.value = s;
+              landingSitesList.appendChild(opt);
+            });
+            const siteInput = document.getElementById('landingSiteInput');
+            if (!siteInput.value && data.landingSites.length > 0) {
+              siteInput.value = data.landingSites[0];
+            }
+          }
+
+          // Update species datalist
+          const speciesList = document.getElementById('speciesList');
+          if (data.keySpecies && data.keySpecies.length > 0) {
+            speciesList.innerHTML = '';
+            data.keySpecies.forEach(sp => {
+              const opt = document.createElement('option');
+              opt.value = sp;
+              speciesList.appendChild(opt);
+            });
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching fisheries directory data:', err);
+      }
+    }
+
+    // Initial run
+    calculateTotal();
+    onCountryChange();
+  </script>
+
+</body>
+</html>

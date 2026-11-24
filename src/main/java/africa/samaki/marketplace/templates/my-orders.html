@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My orders - SamakiAfrica</title>
+<link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<main class="container-narrow" style="padding: 3rem 1.5rem 5rem;">
+  <div class="glass-card glass-glow-subtle">
+    <h2>My orders</h2>
+    <p th:if="${#lists.isEmpty(orders)}">You have no orders yet.</p>
+    <div th:each="o : ${orders}" style="border-bottom:1px solid rgba(255,255,255,.15);padding:12px 0;">
+      <h3 th:text="${o.listing.fishType}"></h3>
+      <p><span th:text="${o.quantityKg}"></span> kg, <b th:text="${o.totalPrice} + ' ' + ${o.listing.currency}"></b></p>
+      <p>Status: <b th:text="${o.status}"></b></p>
+      <p th:if="${o.deliveryRequired}">Delivery to: <span th:text="${o.deliveryAddress}"></span></p>
+    </div>
+    <a class="btn btn-glass" th:href="@{/listings}">Browse fish</a>
+  </div>
+</main>
+</body>
+</html>
