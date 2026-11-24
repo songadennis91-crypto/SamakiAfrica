@@ -10,9 +10,13 @@ import java.util.List;
 
 public interface ListingRepository extends JpaRepository<Listing, Long> {
 
+    List<Listing> findAllByOrderByCreatedAtDesc();
+
     List<Listing> findByStatusNotOrderByCreatedAtDesc(ListingStatus status);
 
     List<Listing> findTop6ByStatusNotOrderByCreatedAtDesc(ListingStatus status);
+
+    long countByStatusNot(ListingStatus status);
 
     List<Listing> findByFisherOrderByCreatedAtDesc(User fisher);
 

@@ -6,6 +6,7 @@ import africa.samaki.marketplace.model.ListingStatus;
 import africa.samaki.marketplace.model.Role;
 import africa.samaki.marketplace.model.User;
 import africa.samaki.marketplace.repository.ListingRepository;
+import africa.samaki.marketplace.repository.UserLoginSessionRepository;
 import africa.samaki.marketplace.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
@@ -20,11 +21,16 @@ public class AuthController {
     private final UserRepository userRepository;
     private final ListingRepository listingRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserLoginSessionRepository sessionRepository;
 
-    public AuthController(UserRepository userRepository, ListingRepository listingRepository, PasswordEncoder passwordEncoder) {
+    public AuthController(UserRepository userRepository,
+                          ListingRepository listingRepository,
+                          PasswordEncoder passwordEncoder,
+                          UserLoginSessionRepository sessionRepository) {
         this.userRepository = userRepository;
         this.listingRepository = listingRepository;
         this.passwordEncoder = passwordEncoder;
+        this.sessionRepository = sessionRepository;
     }
 
     @GetMapping("/")
@@ -91,21 +97,62 @@ public class AuthController {
         model.addAttribute("userRole", user.getRole());
         model.addAttribute("majorBasins", AfricanFisheries.getMajorBasins());
 
-        if (user.getRole() == Role.FISHER) {
+        if (user.isAdmin()) {
+            // ADMIN / OWNER / SYSTEM_DEVELOPER MASTER OVERVIEW
+            model.addAttribute("isAdminView", true);
+            model.addAttribute("isFisherView", false);
+            model.addAttribute("isBuyerView", false);
+            model.addAttribute("isSeller", false);
+
+            long totalUsers = userRepository.count();
+            long totalFishers = userRepository.countByRole(Role.FISHER);
+            long totalBuyers = userRepository.countByRole(Role.BUYER);
+            long totalRiders = userRepository.countByRole(Role.RIDER);
+            long totalListings = listingRepository.count();
+            long activeListings = listingRepository.countByStatusNot(ListingStatus.SOLD);
+
+            List<Listing> allListings = listingRepository.findAllByOrderByCreatedAtDesc();
+            double totalPlatformWeightKg = allListings.stream()
+                    .filter(l -> l.getStatus() != ListingStatus.SOLD)
+                    .mapToDouble(l -> l.getQuantityKg() != null ? l.getQuantityKg() : 0.0)
+                    .sum();
+
+            long activeSessionsCount = sessionRepository.findAllByActiveTrueOrderByLastAccessTimeDesc().size();
+
+            model.addAttribute("totalUsers", totalUsers);
+            model.addAttribute("totalFishers", totalFishers);
+            model.addAttribute("totalBuyers", totalBuyers);
+            model.addAttribute("totalRiders", totalRiders);
+            model.addAttribute("totalListings", totalListings);
+            model.addAttribute("activeListings", activeListings);
+            model.addAttribute("totalPlatformWeightKg", totalPlatformWeightKg);
+            model.addAttribute("activeSessionsCount", activeSessionsCount);
+            model.addAttribute("recentGlobalListings", allListings.stream().limit(12).toList());
+            model.addAttribute("allUsers", userRepository.findAllByOrderByFullNameAsc());
+            model.addAttribute("statuses", ListingStatus.values());
+        } else if (user.getRole() == Role.FISHER) {
+            model.addAttribute("isAdminView", false);
+            model.addAttribute("isFisherView", true);
+            model.addAttribute("isBuyerView", false);
+            model.addAttribute("isSeller", true);
+
             List<Listing> myListings = listingRepository.findByFisherOrderByCreatedAtDesc(user);
             long activeCatches = myListings.stream().filter(l -> l.getStatus() != ListingStatus.SOLD).count();
             double totalWeightKg = myListings.stream().mapToDouble(l -> l.getQuantityKg() != null ? l.getQuantityKg() : 0.0).sum();
-            
+
             model.addAttribute("myListings", myListings);
             model.addAttribute("activeCatches", activeCatches);
             model.addAttribute("totalWeightKg", totalWeightKg);
             model.addAttribute("statuses", ListingStatus.values());
-            model.addAttribute("isSeller", true);
         } else {
-            // Buyer / Rider view
+            // Buyer / Rider view (User Side)
+            model.addAttribute("isAdminView", false);
+            model.addAttribute("isFisherView", false);
+            model.addAttribute("isBuyerView", true);
+            model.addAttribute("isSeller", false);
+
             List<Listing> availableCatches = listingRepository.findTop6ByStatusNotOrderByCreatedAtDesc(ListingStatus.SOLD);
             model.addAttribute("availableCatches", availableCatches);
-            model.addAttribute("isSeller", false);
         }
 
         return "dashboard";

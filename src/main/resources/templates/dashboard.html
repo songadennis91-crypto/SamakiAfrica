@@ -57,18 +57,30 @@
     <div class="dashboard-header">
       <div>
         <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.35rem;">
-          <span class="badge badge-ready" th:text="'Account: ' + ${currentUser.role}">Verified Fisher</span>
-          <span style="font-size: 0.85rem; color: var(--text-muted);" th:text="${currentUser.country}">Kenya</span>
+          <span th:if="${currentUser.isOwner()}" class="badge badge-owner">Platform Owner Executive</span>
+          <span th:if="${currentUser.isSystemDeveloper()}" class="badge badge-dev">System Developer Console</span>
+          <span th:if="${currentUser.role.name() == 'ADMIN'}" class="badge badge-ready">Operations Administrator</span>
+          <span th:if="${!currentUser.isAdmin()}" class="badge badge-ready" th:text="'Account: ' + ${currentUser.role}">Verified User</span>
+          <span style="font-size: 0.85rem; color: var(--text-muted);" th:text="${currentUser.country != null ? currentUser.country : 'Pan-African'}">Kenya</span>
         </div>
         <h1>Welcome, <span class="text-gradient-blue" th:text="${currentUser.fullName}">Dennis</span></h1>
-        <p th:if="${isSeller}">Manage your active catches, post newly hauled fish, and track wholesale buyer inquiries.</p>
-        <p th:if="${!isSeller}">Source fresh artisanal and commercial fish, track dock landings, and place bulk procurement orders.</p>
+        <p th:if="${isAdminView}">Pan-African Marketplace Master Control Console &mdash; Full system visibility, security diagnostics, and operational governance.</p>
+        <p th:if="${isFisherView}">Manage your active catches, post newly hauled fish, and track wholesale buyer inquiries.</p>
+        <p th:if="${isBuyerView}">Source fresh artisanal and commercial fish, track dock landings, and place bulk procurement orders.</p>
       </div>
 
-      <div style="display: flex; gap: 0.75rem;">
-        <a th:if="${isSeller}" th:href="@{/listings/new}" class="btn btn-orange">
+      <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+        <a th:if="${isFisherView}" th:href="@{/listings/new}" class="btn btn-orange">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
           Post a Catch
+        </a>
+        <a th:if="${currentUser.isOwner()}" th:href="@{/admin/financial-control}" class="btn btn-orange">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          Financial Control
+        </a>
+        <a th:if="${currentUser.isOwner() || currentUser.isSystemDeveloper()}" th:href="@{/admin/security}" class="btn btn-blue">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          Security Centre
         </a>
         <a th:href="@{/listings}" class="btn btn-glass">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
@@ -77,54 +89,186 @@
       </div>
     </div>
 
-    <!-- PLATFORM OWNER EXECUTIVE BANNER -->
-    <div th:if="${currentUser.isOwner()}" class="glass-card" style="border-left: 4px solid var(--accent-orange); margin-bottom: 2.5rem; background: linear-gradient(135deg, rgba(249, 115, 22, 0.1) 0%, rgba(14, 25, 52, 0.75) 100%);">
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.25rem;">
-        <div>
-          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
-            <span class="badge badge-owner">Owner Governance & Financial Administration</span>
-            <span style="font-size: 0.8rem; color: var(--text-muted);">Ultimate Authority Active</span>
+    <!-- ======================================================== -->
+    <!-- 1. MASTER CONTROL OVERVIEW (For OWNER, SYSTEM_DEVELOPER, ADMIN) -->
+    <!-- ======================================================== -->
+    <div th:if="${isAdminView}">
+
+      <!-- Core Platform Health & Statistics Grid -->
+      <div class="dashboard-stats-grid" style="margin-bottom: 2.5rem;">
+        <div class="stat-box">
+          <div class="stat-num highlight" th:text="${totalUsers}">12</div>
+          <div class="stat-label">Total Registered Network Users</div>
+          <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.25rem;">
+            <span th:text="${totalFishers}">3</span> Fishers &bull; <span th:text="${totalBuyers}">5</span> Buyers &bull; <span th:text="${totalRiders}">2</span> Riders
           </div>
-          <h3 style="color: var(--text-white); margin-bottom: 0.25rem;">SamakiAfrica Platform Owner Executive Suite</h3>
-          <p style="margin: 0; font-size: 0.9rem; color: var(--text-secondary);">
-            Manage subscription packages, commissions, platform fees, administrator accounts, active sessions, and security audits.
-          </p>
         </div>
+        <div class="stat-box">
+          <div class="stat-num" th:text="${#numbers.formatDecimal(totalPlatformWeightKg, 0, 'COMMA', 1, 'POINT') + ' kg'}">12,500 kg</div>
+          <div class="stat-label">Active Harvest Volume on Platform</div>
+          <div style="font-size: 0.78rem; color: var(--accent-cyan); margin-top: 0.25rem;">Live Pan-African Inventory</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num highlight" th:text="${activeListings + ' / ' + totalListings}">8 / 10</div>
+          <div class="stat-label">Active / Total Catches</div>
+          <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.25rem;">Moderated Across 54 Nations</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num" style="color: #22c55e;" th:text="${activeSessionsCount}">3</div>
+          <div class="stat-label">Live Active Connected Sessions</div>
+          <div style="font-size: 0.78rem; color: #22c55e; margin-top: 0.25rem;">Protected with Session Tracking</div>
+        </div>
+      </div>
+
+      <!-- Quick Operational Action Hub -->
+      <div class="glass-card" style="margin-bottom: 2.5rem; background: rgba(14, 25, 52, 0.65);">
+        <h3 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          Master Operations Command Hub
+        </h3>
         <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
-          <a th:href="@{/admin/financial-control}" class="btn btn-orange">
+          <a th:if="${currentUser.isOwner()}" th:href="@{/admin/financial-control}" class="btn btn-orange">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
             Financial Control Centre
           </a>
-          <a th:href="@{/admin/security}" class="btn btn-blue">
+          <a th:if="${currentUser.isOwner() || currentUser.isSystemDeveloper()}" th:href="@{/admin/security}" class="btn btn-blue">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-            Security & Access Control
+            Security & Session Registry
+          </a>
+          <a th:href="@{/listings}" class="btn btn-glass">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            Browse Public Marketplace
+          </a>
+          <a th:href="@{/listings/new}" class="btn btn-glass" style="border-color: rgba(56,189,248,0.4);">
+            + Create Official Platform Listing
           </a>
         </div>
       </div>
-    </div>
 
-    <!-- SYSTEM DEVELOPER TECHNICAL BANNER -->
-    <div th:if="${currentUser.isSystemDeveloper()}" class="glass-card" style="border-left: 4px solid var(--accent-cyan); margin-bottom: 2.5rem; background: linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(14, 25, 52, 0.75) 100%);">
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.25rem;">
-        <div>
-          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
-            <span class="badge badge-dev">System Developer Console</span>
-            <span style="font-size: 0.8rem; color: var(--text-muted);">Technical Diagnostics & Monitoring</span>
+      <!-- Master Catch Listings Moderation Table -->
+      <div class="glass-card" style="margin-bottom: 2.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <h3>Pan-African Catches Oversight & Moderation</h3>
+            <p>Full real-time visibility over all listings posted by fishers across Africa</p>
           </div>
-          <h3 style="color: var(--text-white); margin-bottom: 0.25rem;">SamakiAfrica Developer Diagnostics & Security</h3>
-          <p style="margin: 0; font-size: 0.9rem; color: var(--text-secondary);">
-            Inspect active login sessions, revoke unauthorized device access, initiate user password resets, and audit security events.
-          </p>
+          <span class="badge badge-ready" th:text="${recentGlobalListings.size()} + ' Recent Catches'">12 Catches</span>
         </div>
-        <a th:href="@{/admin/security}" class="btn btn-blue">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          Open Security Centre &rarr;
-        </a>
+
+        <div th:if="${#lists.isEmpty(recentGlobalListings)}" style="text-align: center; padding: 2.5rem 1rem;">
+          <p style="color: var(--text-muted);">No listings registered yet in the marketplace.</p>
+        </div>
+
+        <div th:if="${!#lists.isEmpty(recentGlobalListings)}" class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Species / Catch</th>
+                <th>Fisher / Supplier</th>
+                <th>Harvest Weight</th>
+                <th>Price / Kg</th>
+                <th>Landing Site & Country</th>
+                <th>Status (Moderator)</th>
+                <th style="text-align: right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr th:each="l : ${recentGlobalListings}">
+                <td>
+                  <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <img th:src="${l.getEffectiveImageUrl()}" th:alt="${l.fishType}" style="width: 44px; height: 44px; border-radius: 8px; object-fit: cover;">
+                    <div>
+                      <b style="color: var(--text-white);" th:text="${l.fishType}">Tilapia</b>
+                      <div style="font-size: 0.75rem; color: var(--text-muted);" th:text="${l.quality}">Fresh</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div style="color: var(--text-white); font-weight: 600;" th:text="${l.fisher != null ? l.fisher.fullName : 'Unknown'}">Juma Omondi</div>
+                  <div style="font-size: 0.75rem; color: var(--text-muted);" th:text="${l.fisher != null ? l.fisher.email : ''}">fisher@samaki.africa</div>
+                </td>
+                <td><b th:text="${l.quantityKg + ' kg'}">450 kg</b></td>
+                <td><span style="color: var(--accent-orange); font-weight: 700;" th:text="${l.pricePerKg + ' ' + l.currency}">380 KES</span></td>
+                <td>
+                  <div th:text="${l.landingSite != null ? l.landingSite : l.fishingGround}">Mbita Pier</div>
+                  <div style="font-size: 0.75rem; color: var(--text-muted);" th:text="${l.country}">Kenya</div>
+                </td>
+                <td>
+                  <form th:action="@{/listings/{id}/status(id=${l.id})}" method="post" style="display:inline;">
+                    <select name="status" onchange="this.form.submit()" class="form-select" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; width: auto; display: inline-block;">
+                      <option th:each="s : ${statuses}" th:value="${s}" th:text="${s}" th:selected="${s == l.status}"></option>
+                    </select>
+                  </form>
+                </td>
+                <td style="text-align: right;">
+                  <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+                    <a th:href="@{/listings/{id}(id=${l.id})}" class="btn btn-glass btn-sm" title="View Public Page">View</a>
+                    <a th:href="@{/listings/{id}/edit(id=${l.id})}" class="btn btn-blue btn-sm" title="Edit Catch">Edit</a>
+                    <form th:action="@{/listings/{id}/delete(id=${l.id})}" method="post" style="display: inline;" onsubmit="return confirm('Are you sure you want to remove this catch listing?');">
+                      <button type="submit" class="btn btn-danger btn-sm" title="Delete Catch">Delete</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
+
+      <!-- Platform Users Directory Table -->
+      <div class="glass-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <h3>Platform Membership & Directory</h3>
+            <p>Live registry of registered fishers, buyers, and platform personnel</p>
+          </div>
+          <span class="badge badge-dev" th:text="${totalUsers} + ' Total Members'">12 Total Members</span>
+        </div>
+
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>User / Organization</th>
+                <th>Role</th>
+                <th>Country</th>
+                <th>Email Address</th>
+                <th>Phone</th>
+                <th>Registered</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr th:each="u : ${allUsers}">
+                <td>
+                  <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <span class="user-avatar" style="width: 34px; height: 34px; font-size: 0.85rem;" th:text="${#strings.substring(u.fullName, 0, 1)}">U</span>
+                    <b style="color: var(--text-white);" th:text="${u.fullName}">User</b>
+                  </div>
+                </td>
+                <td>
+                  <span th:if="${u.role.name() == 'OWNER'}" class="badge badge-owner">OWNER</span>
+                  <span th:if="${u.role.name() == 'SYSTEM_DEVELOPER'}" class="badge badge-dev">DEVELOPER</span>
+                  <span th:if="${u.role.name() == 'ADMIN'}" class="badge badge-ready">ADMIN</span>
+                  <span th:if="${u.role.name() == 'FISHER'}" class="badge badge-role" style="background: rgba(249,115,22,0.15); color: #fb923c;">FISHER (SELLER)</span>
+                  <span th:if="${u.role.name() == 'BUYER'}" class="badge badge-role" style="background: rgba(14,165,233,0.15); color: #38bdf8;">BUYER (WHOLESALE)</span>
+                  <span th:if="${u.role.name() == 'RIDER'}" class="badge badge-role" style="background: rgba(168,85,247,0.15); color: #c084fc;">LOGISTICS RIDER</span>
+                </td>
+                <td th:text="${u.country != null ? u.country : 'Pan-African'}">Kenya</td>
+                <td th:text="${u.email}">user@samaki.africa</td>
+                <td th:text="${u.phone}">+254...</td>
+                <td style="font-size: 0.8rem; color: var(--text-muted);" th:text="${#temporals.format(u.createdAt, 'dd MMM yyyy')}">24 Nov 2026</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
     </div>
 
-    <!-- SELLER (FISHER) DASHBOARD SECTION -->
-    <div th:if="${isSeller}">
+    <!-- ======================================================== -->
+    <!-- 2. SELLER (FISHER) DASHBOARD SECTION -->
+    <!-- ======================================================== -->
+    <div th:if="${isFisherView}">
 
       <!-- Stats Grid -->
       <div class="dashboard-stats-grid">
@@ -226,8 +370,10 @@
 
     </div>
 
-    <!-- BUYER / LOGISTICS DASHBOARD SECTION -->
-    <div th:if="${!isSeller}">
+    <!-- ======================================================== -->
+    <!-- 3. BUYER / LOGISTICS DASHBOARD SECTION (Ordinary Consumer Side) -->
+    <!-- ======================================================== -->
+    <div th:if="${isBuyerView}">
 
       <!-- Stats Grid -->
       <div class="dashboard-stats-grid">

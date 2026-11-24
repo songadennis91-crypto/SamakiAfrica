@@ -157,7 +157,7 @@ public class ListingController {
     public String update(@PathVariable Long id, @ModelAttribute("listing") Listing updatedListing, Principal principal) {
         User user = userRepository.findByEmail(principal.getName()).orElseThrow();
         Listing existing = listingRepository.findById(id).orElseThrow();
-        if (!existing.getFisher().getId().equals(user.getId()) && user.getRole() != Role.ADMIN) {
+        if (!existing.getFisher().getId().equals(user.getId()) && !user.isAdmin()) {
             return "redirect:/my-listings";
         }
 
@@ -176,17 +176,17 @@ public class ListingController {
         existing.setStatus(updatedListing.getStatus());
 
         listingRepository.save(existing);
-        return "redirect:/my-listings";
+        return user.isAdmin() ? "redirect:/dashboard" : "redirect:/my-listings";
     }
 
     @PostMapping("/listings/{id}/delete")
     public String delete(@PathVariable Long id, Principal principal) {
         User user = userRepository.findByEmail(principal.getName()).orElseThrow();
         Listing listing = listingRepository.findById(id).orElseThrow();
-        if (listing.getFisher().getId().equals(user.getId()) || user.getRole() == Role.ADMIN) {
+        if (listing.getFisher().getId().equals(user.getId()) || user.isAdmin()) {
             listingRepository.delete(listing);
         }
-        return "redirect:/my-listings";
+        return user.isAdmin() ? "redirect:/dashboard" : "redirect:/my-listings";
     }
 
     @GetMapping("/my-listings")
@@ -208,11 +208,12 @@ public class ListingController {
 
     @PostMapping("/listings/{id}/status")
     public String updateStatus(@PathVariable Long id, @RequestParam ListingStatus status, Principal principal) {
+        User user = userRepository.findByEmail(principal.getName()).orElseThrow();
         Listing listing = listingRepository.findById(id).orElseThrow();
-        if (listing.getFisher().getEmail().equals(principal.getName())) {
+        if (listing.getFisher().getEmail().equals(principal.getName()) || user.isAdmin()) {
             listing.setStatus(status);
             listingRepository.save(listing);
         }
-        return "redirect:/my-listings";
+        return user.isAdmin() ? "redirect:/dashboard" : "redirect:/my-listings";
     }
 }
