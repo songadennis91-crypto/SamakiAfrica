@@ -30,6 +30,7 @@ public class SecurityConfig {
                     "/manifest.webmanifest",
                     "/sw.js",
                     "/icons/**",
+                    "/downloads/**",
                     "/reset-password",
                     "/listings",
                     "/listings/{id:[0-9]+}",
